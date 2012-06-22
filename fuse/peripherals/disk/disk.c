@@ -1100,7 +1100,11 @@ open_img_mgt_opd( buffer_t *buffer, disk_t *d )
    * 2*80*10*512, 1*80*10*512, 1*40*10*512, 1*40*18*256, 1*80*18*256,
    * 2*80*18*256
    */
-  if( buffer->file.length == 2*80*10*512 ) {
+  if( buffer->file.length == 2*80*16*256 ) {
+    d->sides = 2; d->cylinders = 80; sectors = 16; seclen = 256;
+  } else if( buffer->file.length == 2*40*16*256 ) {
+    d->sides = 2; d->cylinders = 40; sectors = 16; seclen = 256;
+  } else if( buffer->file.length == 2*80*10*512 ) {
     d->sides = 2; d->cylinders = 80; sectors = 10; seclen = 512;
   } else if( buffer->file.length == 1*80*10*512 ) {
     /* we cannot distinguish between a single sided 80 track image
@@ -2125,7 +2129,9 @@ write_img_mgt_opd( FILE *file, disk_t *d )
   int i, j, sbase, sectors, seclen, mfm, cyl;
 
   if( check_disk_geom( d, &sbase, &sectors, &seclen, &mfm, &cyl ) ||
-      ( d->type != DISK_OPD && ( sbase != 1 || seclen != 2 || sectors != 10 ) ) ||
+      ( d->type != DISK_OPD &&
+        ( sbase != 1 || seclen != 2 || sectors != 10 ) &&
+        ( sbase != 1 || seclen != 1 || sectors != 16 ) ) ||
       ( d->type == DISK_OPD && ( sbase != 0 || seclen != 1 || sectors != 18 ) ) )
     return d->status = DISK_GEOM;
 
