@@ -209,6 +209,7 @@ fdd_head_load( fdd_t *d, int load )
 void
 fdd_select( fdd_t *d, int select )
 {
+fprintf(stderr, "%s: fdd=%p select=%d\n", __func__, d, select); // XXX
   d->selected = select > 0 ? 1 : 0;
   /*
       ... Drive Select when activated to a logical

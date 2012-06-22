@@ -264,6 +264,7 @@ read_datamark( upd_fdc *f )
       if( d->fdd.data == 0x00 )		/* go to PLL sync */
 	break;
 
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
       f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
       return 1;				/* something wrong... */
     } 
@@ -276,18 +277,21 @@ read_datamark( upd_fdc *f )
       if( d->fdd.data == 0xffa1 )	/* got to a1 mark */
 	break;
 
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
       f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
       return 1;
     }
     for( i = d->fdd.data == 0xffa1 ? 2 : 3; i > 0; i-- ) {
       fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
       if( d->fdd.data != 0xffa1 ) {
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
         f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
 	return 1;
       }
     } 
     fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
     if( d->fdd.data < 0x00f8 || d->fdd.data > 0x00fb ) { /* !fb deleted mark */
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
       f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
       return 1;
     }
@@ -305,6 +309,7 @@ read_datamark( upd_fdc *f )
       if( d->fdd.data == 0x00 )		/* go to PLL sync */
 	break;
 
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
       f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
       return 1;				/* something wrong... */
     } 
@@ -317,12 +322,14 @@ read_datamark( upd_fdc *f )
       if( d->fdd.data >= 0xfff8 && d->fdd.data <= 0xfffb )	/* !fb deleted mark */
 	break;
 
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
       f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
       return 1;
     }
     if( i == 0 ) {
       fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
       if( d->fdd.data < 0xfff8 || d->fdd.data > 0xfffb ) {	/* !fb deleted mark */
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
         f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
 	return 1;
       }
@@ -333,6 +340,7 @@ read_datamark( upd_fdc *f )
       f->ddam = 0;
     return 0;
   }
+fprintf(stderr, "%s:%d: data 0x%02x\n", __func__, __LINE__, d->fdd.data);
   f->status_register[2] |= UPD_FDC_ST2_MISSING_DM;
   return 1;
 }
@@ -399,6 +407,17 @@ upd_fdc_alloc_fdc( upd_type_t type, upd_clock_t clock )
 static void
 cmd_result( upd_fdc *f )
 {
+fprintf(stderr, "%s: cmd 0x%x, status: %02x %02x %02x, data %02x %02x %02x %02x %02x\n",
+	__func__, f->cmd->value,
+	f->status_register[0],
+	f->status_register[1],
+	f->status_register[2],
+	f->data_register[0],
+	f->data_register[1],
+	f->data_register[2],
+	f->data_register[3],
+	f->data_register[4]);
+
   f->cycle = f->cmd->res_length;
   f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
   f->main_status |= UPD_FDC_MAIN_DATAREQ;
@@ -572,6 +591,7 @@ start_read_data( upd_fdc *f )
   int i;
 skip_deleted_sector:
 multi_track_next:
+fprintf(stderr, "%s: start (tc=%d)\n", __func__, f->tc);
   if( f->first_rw || f->read_id || 
       (!f->tc && f->data_register[5] > f->data_register[3]) ) {
     if( !f->read_id ) {
@@ -617,6 +637,7 @@ multi_track_next:
       }
     }
   } else {
+fprintf(stderr, "%s: check (mt=%d tc=%d)\n", __func__, f->mt, f->tc);
     if( f->mt ) {
       f->data_register[1]++;		/* next track */
       f->data_register[3] = 1;		/* first sector */
@@ -630,7 +651,7 @@ abort_read_data:
 *    (i.e. no other errors occur like no data.
 * 2. sector being read is same specified by EOT
 * 3. terminal count is not received
-* note: in +3 uPD765 never got TC
+* note: in +3 uPD765 never got TC (FIXME)
 */
     if( !f->status_register[0] && !f->status_register[1] && !f->tc ) {
       f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
@@ -648,6 +669,7 @@ abort_read_data:
     cmd_result( f );
     return;
   }
+
   f->main_status |= UPD_FDC_MAIN_DATAREQ;
   if( f->cmd->id != UPD_CMD_SCAN )
     f->main_status |= UPD_FDC_MAIN_DATA_READ;
@@ -731,7 +753,7 @@ abort_write_data:
 *    (i.e. no other errors occur like no data.
 * 2. sector being read is same specified by EOT
 * 3. terminal count is not received
-* note: in +3 uPD765 never got TC
+* note: in +3 uPD765 never got TC (FIXME)
 */
     if( !f->tc ) {
       f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
@@ -890,6 +912,7 @@ upd_fdc_read_data( upd_fdc *f )
     return 0xff;
 
   if( f->state == UPD_FDC_STATE_EXE ) {		/* READ_DATA/READ_DIAG */
+
     f->data_offset++;				/* count read bytes */
     fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d ); /* read a byte */
 
@@ -1157,6 +1180,15 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
     f->data_register[f->cycle - 1] = data;	/* store data register bytes */
   }
   if( f->cycle >= f->cmd->cmd_length ) { 	/* we already read all neccessery byte */
+fprintf(stderr, "%s: cmd 0x%02x  data %02x  %02x %02x %02x %02x  %02x %02x %02x\n", __func__, f->cmd->value,
+	f->data_register[0],
+	f->data_register[1],
+	f->data_register[2],
+	f->data_register[3],
+	f->data_register[4],
+	f->data_register[5],
+	f->data_register[6],
+	f->data_register[7]);
     f->state = UPD_FDC_STATE_EXE;		/* start execution of the command */
     f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
     if( f->non_dma ) {				/* btw: only NON-DMA mode emulated */
@@ -1358,8 +1390,12 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
   }
 }
 
+/* Signal the state of the Terminal Count input. */
 void upd_fdc_tc( upd_fdc *f, int tc )
 {
+fprintf(stderr, "%s: tc=%d data_offset=%d rlen=%d status: %02x %02x\n", __func__,
+	tc, f->data_offset, f->rlen, f->status_register[0], f->status_register[1]);
+
   if (tc > 0)
     f->tc = 1;
 }
