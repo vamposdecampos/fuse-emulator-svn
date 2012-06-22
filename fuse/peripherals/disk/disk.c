@@ -2128,10 +2128,15 @@ write_img_mgt_opd( FILE *file, disk_t *d )
 {
   int i, j, sbase, sectors, seclen, mfm, cyl;
 
+  check_disk_geom( d, &sbase, &sectors, &seclen, &mfm, &cyl );
+  fprintf(stderr, "%s: sbase=%d sectors=%d seclen=%d cyl=%d\n", __func__, sbase, sectors, seclen, cyl);
+
+/*
   if( check_disk_geom( d, &sbase, &sectors, &seclen, &mfm, &cyl ) ||
       ( d->type != DISK_OPD && ( sbase != 1 || seclen != 2 || sectors != 10 ) ) ||
       ( d->type == DISK_OPD && ( sbase != 0 || seclen != 1 || sectors != 18 ) ) )
     return d->status = DISK_GEOM;
+*/
 
   if( cyl == -1 ) cyl = d->cylinders;
   if( cyl != 40 && cyl != 80 )
