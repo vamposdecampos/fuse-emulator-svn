@@ -40,16 +40,21 @@
 #include "memory.h"
 #include "module.h"
 #include "periph.h"
+#include "peripherals/disk/fdd.h"
+#include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
 #include "utils.h"
 #include "ui/ui.h"
 #include "unittests/unittests.h"
 
 #undef IF1_DEBUG_MDR
-#undef IF1_DEBUG_NET
+#define IF1_DEBUG_NET
 #undef IF1_DEBUG_NET_1
 
 #define BUFF_EMPTY 0x100
+
+//#define debug_fdc(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
+#define debug_fdc(x...)
 
 enum {
   SYNC_NO = 0,
@@ -155,8 +160,41 @@ RS232:
     every other 0x00 + 0x## are discarded
 */
 
+/*
+  HC IF1
+
+                         7   6   5   4   3   2   1   0
+ STATUS RO $EF(239)     --- --- --- --- DTR --- --- ---
+
+ CONTRO WO $EF(239)     --- --- WAT CTS --- --- --- DTA
+
+ COMM I RO $F7(247)     TXD --- --- --- --- --- --- NIN
+
+ COMM O WO $F7(247)     --- --- --- --- --- --- --- nNET/RS232
+
+
+ BOTH I RO $E7          TXD --- --- --- DTR --- --- NIN
+
+
+ FDSEL I ($05/$07)      --- --- --- --- --- --- --- MOTOR_ON
+ FDSEL O ($05/$07)      --- --- --- RST 555 FD1 FD2 ---
+
+ $85 I i8272 status
+ $87 I i8272 data
+ $87 O i8272 command
+
+?
+ Address lines:		 A7  A6  A5  A4  A3  A2  A1  A0
+ $FE (spectrum port)	  1                          0
+ $7E (sys config)	  0                          0
+ $F7 (NET)		  0  [not  000]  0
+ $F7 (NET)		  1  [not  000]  0           1
+ $EF (CTR)		     [! 00]  0               1
+
+ */
+
 /* One 8KB memory chunk accessible by the Z80 when /ROMCS is low */
-static memory_page if1_memory_map_romcs[MEMORY_PAGES_IN_8K];
+static memory_page if1_memory_map_romcs[MEMORY_PAGES_IN_16K];
 
 /* IF1 paged out ROM activated? */
 int if1_active = 0;
@@ -193,6 +231,7 @@ enum if1_port {
   PORT_MDR,
   PORT_CTR,
   PORT_NET,
+  PORT_BOTH,
   PORT_UNKNOWN,
 };
 
@@ -200,6 +239,20 @@ static void if1_reset( int hard_reset );
 static void if1_enabled_snapshot( libspectrum_snap *snap );
 static void if1_from_snapshot( libspectrum_snap *snap );
 static void if1_to_snapshot( libspectrum_snap *snap );
+
+
+#define IF1_NUM_DRIVES 2
+upd_fdc *if1_fdc;
+static upd_fdc_drive if1_drives[ IF1_NUM_DRIVES ];
+
+void if1_fdc_reset( void );
+void if1_fdc_init( void );
+
+libspectrum_byte if1_fdc_status( libspectrum_word port, int *attached );
+libspectrum_byte if1_fdc_read( libspectrum_word port, int *attached );
+void if1_fdc_write( libspectrum_word port, libspectrum_byte data );
+libspectrum_byte if1_fdc_sel_read( libspectrum_word port, int *attached );
+void if1_fdc_sel_write( libspectrum_word port, libspectrum_byte data );
 
 static module_info_t if1_module_info = {
 
@@ -212,9 +265,15 @@ static module_info_t if1_module_info = {
 };
 
 static const periph_port_t if1_ports[] = {
+  { 0x00fd, 0x0005, if1_fdc_sel_read, if1_fdc_sel_write },
+  { 0x00ff, 0x0085, if1_fdc_status, NULL },
+  { 0x00ff, 0x0087, if1_fdc_read, if1_fdc_write },
   { 0x0018, 0x0010, if1_port_in, if1_port_out },
   { 0x0018, 0x0008, if1_port_in, if1_port_out },
   { 0x0018, 0x0000, if1_port_in, if1_port_out },
+/*
+  { 0x0001, 0x0001, if1_port_in, if1_port_out },
+*/
   { 0, 0, NULL, NULL }
 };
 
@@ -333,7 +392,13 @@ if1_init( void )
     settings_current.snet = NULL;
   }
 
+  if1_fdc_init();
+
   module_register( &if1_module_info );
+
+  if1_memory_source = memory_source_register( "If1r" );
+  for( i = MEMORY_PAGES_IN_8K; i < MEMORY_PAGES_IN_16K; i++ )
+    if1_memory_map_romcs[i].source = if1_memory_source;
 
   if1_memory_source = memory_source_register( "If1" );
   for( i = 0; i < MEMORY_PAGES_IN_8K; i++ )
@@ -364,6 +429,9 @@ if1_update_menu( void )
   update_menu( UMENU_ALL );
 }
 
+/* The number of memory pages in 1K */
+#define MEMORY_PAGES_IN_1K ( 1 << ( 10 - MEMORY_PAGE_SIZE_LOGARITHM ) )
+
 static void
 if1_reset( int hard_reset GCC_UNUSED )
 {
@@ -381,6 +449,20 @@ if1_reset( int hard_reset GCC_UNUSED )
     return;
   }
 
+  if (1) { /* XXX */
+    int j;
+
+    libspectrum_byte *ram =
+      memory_pool_allocate_persistent( 1024 /* IF1_HC_RAM_LENGTH */, 1 );
+
+      for( j = 0; j < MEMORY_PAGES_IN_8K; j++ ) {
+        memory_page *page = &if1_memory_map_romcs[MEMORY_PAGES_IN_8K + j];
+        /* HACK: assumes page size is 1K */
+        page->writable = (j % 4) >= 2;
+        page->page = ram;
+      }
+  }
+
   machine_current->ram.romcs = 0;
   
   if1_ula.cts = 2;		/* force to emit first out if raw */
@@ -390,6 +472,7 @@ if1_reset( int hard_reset GCC_UNUSED )
   if1_ula.esc_in = 0;
 
   microdrives_reset();
+  if1_fdc_reset();
 
   update_menu( UMENU_ALL );
   ui_statusbar_update( UI_STATUSBAR_ITEM_MICRODRIVE,
@@ -426,7 +509,8 @@ if1_memory_map( void )
   if( !if1_active ) return;
 
   memory_map_romcs_8k( 0x0000, if1_memory_map_romcs );
-  memory_map_romcs_8k( 0x2000, if1_memory_map_romcs );
+  //memory_map_romcs_8k( 0x2000, if1_memory_map_romcs );
+  memory_map_romcs_8k( 0x2000, if1_memory_map_romcs + MEMORY_PAGES_IN_8K );
 }
 
 static void
@@ -527,7 +611,8 @@ static enum if1_port
 decode_port( libspectrum_word port )
 {
     switch( port & 0x0018 ) {
-    case 0x0000: return PORT_MDR;
+    //case 0x0000: return PORT_MDR;
+    case 0x0000: return PORT_BOTH;
     case 0x0008: return PORT_CTR;
     case 0x0010: return PORT_NET;
         default: return PORT_UNKNOWN;
@@ -767,6 +852,9 @@ if1_port_in( libspectrum_word port GCC_UNUSED, int *attached )
 {
   libspectrum_byte ret = 0xff;
 
+  if (!(port & 0x70))
+      return 0xff;
+
   *attached = 1;
 
   switch( decode_port( port ) )
@@ -774,8 +862,13 @@ if1_port_in( libspectrum_word port GCC_UNUSED, int *attached )
   case PORT_MDR: ret &= port_mdr_in(); break;
   case PORT_CTR: ret &= port_ctr_in(); break;
   case PORT_NET: ret &= port_net_in(); break;
+  case PORT_BOTH:
+    ret = (port_net_in() & 0x81) | (port_ctr_in() & 0x08);
+    break;
   case PORT_UNKNOWN: break;
   }
+
+  debug_fdc("port 0x%02x (%d) --> 0x%02x", port & 0xff, decode_port(port), ret);
 
   return ret;
 }
@@ -1006,11 +1099,20 @@ if1_port_out( libspectrum_word port GCC_UNUSED, libspectrum_byte val )
 	!!(val & 8), !!(val & 4), !!(val & 2), !!(val & 1), port);
 #endif
 
+  if (!(port & 0x70))
+      return;
+
+  debug_fdc("port 0x%02x <- 0x%02x", port & 0xff, val);
+
   switch( decode_port( port ) ) {
   case PORT_MDR: port_mdr_out( val ); break;
-  case PORT_CTR: port_ctr_out( val ); break;
-  case PORT_NET: port_net_out( val ); break;
+  case PORT_CTR: port_ctr_out( val & 0x31 ); break;
+  case PORT_NET: port_net_out( val & 0x01 ); break;
   case PORT_UNKNOWN: break;
+  case PORT_BOTH:
+      port_ctr_out(val & 0x31);
+      port_net_out(val & 0x01);
+      break;
   }
 }
 
@@ -1339,3 +1441,139 @@ if1_unittest( void )
   return r;
 }
 
+
+libspectrum_byte
+if1_fdc_status( libspectrum_word port GCC_UNUSED, int *attached )
+{
+  libspectrum_byte ret;
+  *attached = 1;
+  ret = upd_fdc_read_status( if1_fdc );
+//  debug_fdc("port 0x%02x --> 0x%02x", port & 0xff, ret);
+  return ret;
+}
+
+libspectrum_byte
+if1_fdc_read( libspectrum_word port GCC_UNUSED, int *attached )
+{
+  libspectrum_byte ret;
+  *attached = 1;
+  ret = upd_fdc_read_data( if1_fdc );
+  debug_fdc("port 0x%02x --> 0x%02x", port & 0xff, ret);
+  return ret;
+}
+
+void
+if1_fdc_write( libspectrum_word port GCC_UNUSED, libspectrum_byte data )
+{
+  debug_fdc("port 0x%02x <-- 0x%02x", port & 0xff, data);
+  upd_fdc_write_data( if1_fdc, data );
+}
+
+libspectrum_byte
+if1_fdc_sel_read( libspectrum_word port GCC_UNUSED, int *attached )
+{
+  libspectrum_byte ret;
+  *attached = 1;
+  ret = 0xff;
+  debug_fdc("port 0x%02x --> 0x%02x", port & 0xff, ret);
+  return ret;
+}
+
+void
+if1_fdc_sel_write( libspectrum_word port GCC_UNUSED, libspectrum_byte data )
+{
+  libspectrum_byte armed;
+
+  debug_fdc("port 0x%02x <-- 0x%02x", port & 0xff, data);
+
+  if (!(data & 0x10)) {
+    debug_fdc("if1: FDC reset");
+    upd_fdc_master_reset(if1_fdc);
+  }
+  upd_fdc_tc(if1_fdc, data & 1);
+
+  armed = data & 0x08;
+  if (!armed) {
+//    if1_drives[0].disk.type = DISK_TYPE_NONE;
+//    fprintf(stderr, "### disk_write log: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.log")); // HACK
+    if1_drives[0].disk.type = DISK_TYPE_NONE;
+//    debug_fdc( "### disk_write udi: %d", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.udi")); // HACK
+    fprintf(stderr, "### disk_write mgt: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.mgt")); // HACK
+//    fprintf(stderr, "### disk_write img: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.img")); // HACK
+//    if1_drives[0].disk.type = DISK_LOG;
+  }
+
+
+  /* TODO: monostable delay */
+  //armed = data & 0x08;
+  armed = 1;
+  fdd_select(&if1_drives[0].fdd, armed && (data & 0x02));
+  fdd_select(&if1_drives[1].fdd, armed && (data & 0x04));
+  fdd_motoron(&if1_drives[0].fdd, armed && (data & 0x02));
+  fdd_motoron(&if1_drives[1].fdd, armed && (data & 0x04));
+}
+
+void
+if1_fdc_init( void )
+{
+  upd_fdc_drive *d;
+  int err;
+
+  if1_fdc = upd_fdc_alloc_fdc( UPD765A, UPD_CLOCK_8MHZ );
+  if1_fdc->drive[0] = &if1_drives[ 0 ];
+  if1_fdc->drive[1] = &if1_drives[ 1 ];
+  if1_fdc->drive[2] = &if1_drives[ 0 ];
+  if1_fdc->drive[3] = &if1_drives[ 1 ];
+
+  fdd_init( &if1_drives[ 0 ].fdd, FDD_SHUGART, &fdd_params[ 4 ], 0 );
+  fdd_init( &if1_drives[ 1 ].fdd, FDD_SHUGART, &fdd_params[ 1 ], 0 );	/* drive geometry 'autodetect' */
+  if1_fdc->set_intrq = NULL;
+  if1_fdc->reset_intrq = NULL;
+  if1_fdc->set_datarq = NULL;
+  if1_fdc->reset_datarq = NULL;
+
+  d = &if1_drives[0];
+  err = disk_open( &d->disk, "/tmp/hc-if1-disk.mgt", 0, 0);
+  fprintf(stderr, "disk_open: %d\n", err);
+  if (err) {
+    err = disk_new(&d->disk,
+      2 /* heads */,
+      80 /* cylinders */,
+      DISK_DENS_AUTO /* DISK_DENS_AUTO */,
+      DISK_LOG /* DISK_UDI? _NONE? */);
+    fprintf(stderr, "disk_new: %d\n", err);
+  }
+
+  err = fdd_load( &d->fdd, &d->disk, 0 );
+  debug_fdc("fdc_load(%p): %d", &d->fdd, err);
+
+
+  d = &if1_drives[1];
+  if (1) {
+    err = disk_new(&d->disk,
+      2 /* heads */,
+      40 /* cylinders */,
+      DISK_DENS_AUTO /* DISK_DENS_AUTO */,
+      DISK_LOG /* DISK_UDI? _NONE? */);
+    fprintf(stderr, "disk_new: %d\n", err);
+  }
+  err = fdd_load( &d->fdd, &d->disk, 0 );
+  debug_fdc("fdc_load(%p): %d", &d->fdd, err);
+}
+
+void
+if1_fdc_reset( void )
+{
+  const fdd_params_t *dt;
+
+  upd_fdc_master_reset( if1_fdc );
+  dt = &fdd_params[4];
+  fdd_init( &if1_drives[ 0 ].fdd, FDD_SHUGART, dt, 1 );
+
+  dt = &fdd_params[2];
+  fdd_init( &if1_drives[ 1 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+}
+
+/*
+vampire@black:~/src/fuse-emulator/fuse$ ~/build/fuse-git/fuse/fuse -m 48 --rom-48=roms/HC/HC-90/BAS --rom-interface-i=roms/HC/HC-90/IF1.trunc --interface1  > /tmp/fuse.log 2>&1
+ */
