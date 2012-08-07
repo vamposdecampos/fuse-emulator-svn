@@ -246,7 +246,7 @@ upd_fdc *if1_fdc;
 static upd_fdc_drive if1_drives[ IF1_NUM_DRIVES ];
 
 void if1_fdc_reset( void );
-void if1_fdc_init( void );
+void if1_fdc_init( char* );
 
 libspectrum_byte if1_fdc_status( libspectrum_word port, int *attached );
 libspectrum_byte if1_fdc_read( libspectrum_word port, int *attached );
@@ -265,7 +265,8 @@ static module_info_t if1_module_info = {
 };
 
 static const periph_port_t if1_ports[] = {
-  { 0x00fd, 0x0005, if1_fdc_sel_read, if1_fdc_sel_write },
+  { 0x00ff, 0x0005, if1_fdc_sel_read, if1_fdc_sel_write },
+  { 0x00ff, 0x0007, if1_fdc_sel_read, if1_fdc_sel_write },
   { 0x00ff, 0x0085, if1_fdc_status, NULL },
   { 0x00ff, 0x0087, if1_fdc_read, if1_fdc_write },
   { 0x0018, 0x0010, if1_port_in, if1_port_out },
@@ -392,7 +393,7 @@ if1_init( void )
     settings_current.snet = NULL;
   }
 
-  if1_fdc_init();
+  if1_fdc_init(NULL);
 
   module_register( &if1_module_info );
 
@@ -1191,7 +1192,11 @@ if1_mdr_new( microdrive_t *mdr )
 
 int
 if1_mdr_insert( int which, const char *filename )
-{
+{  
+  if1_fdc_init(filename);
+  return 1;
+  
+	
   microdrive_t *mdr;
   int m, i;
 
@@ -1474,7 +1479,7 @@ if1_fdc_sel_read( libspectrum_word port GCC_UNUSED, int *attached )
 {
   libspectrum_byte ret;
   *attached = 1;
-  ret = 0xff;
+  ret = 0xfe;
   debug_fdc("port 0x%02x --> 0x%02x", port & 0xff, ret);
   return ret;
 }
@@ -1493,12 +1498,13 @@ if1_fdc_sel_write( libspectrum_word port GCC_UNUSED, libspectrum_byte data )
   upd_fdc_tc(if1_fdc, data & 1);
 
   armed = data & 0x08;
+  //armed = 1;
   if (!armed) {
 //    if1_drives[0].disk.type = DISK_TYPE_NONE;
 //    fprintf(stderr, "### disk_write log: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.log")); // HACK
     if1_drives[0].disk.type = DISK_TYPE_NONE;
 //    debug_fdc( "### disk_write udi: %d", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.udi")); // HACK
-    fprintf(stderr, "### disk_write mgt: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.mgt")); // HACK
+//    fprintf(stderr, "### disk_write mgt: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.mgt")); // HACK
 //    fprintf(stderr, "### disk_write img: %d\n", disk_write(&if1_drives[0].disk, "/tmp/hc-if1-disk.img")); // HACK
 //    if1_drives[0].disk.type = DISK_LOG;
   }
@@ -1514,7 +1520,7 @@ if1_fdc_sel_write( libspectrum_word port GCC_UNUSED, libspectrum_byte data )
 }
 
 void
-if1_fdc_init( void )
+if1_fdc_init( char* fileName )
 {
   upd_fdc_drive *d;
   int err;
@@ -1533,7 +1539,12 @@ if1_fdc_init( void )
   if1_fdc->reset_datarq = NULL;
 
   d = &if1_drives[0];
-  err = disk_open( &d->disk, "/tmp/hc-if1-disk.mgt", 0, 0);
+  //err = disk_open( &d->disk, "/tmp/hc-if1-disk.mgt", 0, 0);  
+  if (fileName)
+  	err = disk_open( &d->disk, fileName, 0, 0);  
+  else
+    err = 1;
+  
   fprintf(stderr, "disk_open: %d\n", err);
   if (err) {
     err = disk_new(&d->disk,
