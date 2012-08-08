@@ -1194,6 +1194,7 @@ int
 if1_mdr_insert( int which, const char *filename )
 {  
   if1_fdc_init(filename);
+  ui_menu_activate( UI_MENU_ITEM_MEDIA_IF1_M1_EJECT, 1);
   return 1;
   
 	
@@ -1309,6 +1310,20 @@ int
 if1_mdr_save( int which, int saveas )
 {
   microdrive_t *mdr;
+  char *filename;
+  int error = -1;
+
+  fuse_emulation_pause();
+  filename = ui_get_save_filename("Fuse - Write IF1 disk image");
+  if (filename) {
+    error = disk_write(&if1_drives[0].disk, filename);
+    if (error != DISK_OK)
+      ui_error(UI_ERROR_ERROR, "couldn't write '%s' file: %s", filename, disk_strerror(error));
+    libspectrum_free(filename);
+  }
+  fuse_emulation_unpause();
+  return error == DISK_OK ? 1 : 0;
+
 
   if( which >= 8 )
     return 1;
