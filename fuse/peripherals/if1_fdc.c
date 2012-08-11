@@ -2,11 +2,18 @@
 #include "if1_fdc.h"
 
 #include "compat.h"
+#include "if1.h"
+#include "memory.h"
 #include "module.h"
 #include "periph.h"
 #include "settings.h"
 
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
+
+#define IF1_FDC_RAM_SIZE	1024	/* bytes */
+
+static int if1_fdc_memory_source;
+static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
 
 void if1_fdc_reset(int hard)
 {
@@ -15,7 +22,10 @@ void if1_fdc_reset(int hard)
 
 void if1_fdc_romcs(void)
 {
-	dbg("called");
+	dbg("called; if1_active=%d", if1_active);
+	if (!if1_active)
+		return;
+	memory_map_romcs_8k(0x2000, if1_fdc_memory_map_romcs);
 }
 
 void if1_fdc_activate(void)
@@ -40,6 +50,21 @@ static module_info_t if1_fdc_module = {
 
 void if1_fdc_init(void)
 {
+	int i;
+	libspectrum_byte *ram;
+
+	if1_fdc_memory_source = memory_source_register("If1 RAM");
+	ram = memory_pool_allocate_persistent(IF1_FDC_RAM_SIZE, 1);
+
+	for (i = 0; i < MEMORY_PAGES_IN_8K; i++) {
+		libspectrum_word addr = i << MEMORY_PAGE_SIZE_LOGARITHM;
+		memory_page *page = &if1_fdc_memory_map_romcs[i];
+
+		page->source = if1_fdc_memory_source;
+		page->page = ram + (addr % IF1_FDC_RAM_SIZE);
+		page->writable = !!(addr & 0x800);
+	}
+
 	module_register(&if1_fdc_module);
 	periph_register(PERIPH_TYPE_INTERFACE1_FDC, &if1_fdc_periph);
 }
