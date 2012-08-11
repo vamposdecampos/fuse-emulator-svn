@@ -41,6 +41,8 @@
 
 #define IF1_FDC_RAM_SIZE	1024    /* bytes */
 
+int if1_fdc_available;
+
 static int if1_fdc_memory_source;
 static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
 
@@ -48,6 +50,13 @@ void
 if1_fdc_reset( int hard )
 {
   dbg( "called" );
+
+  if1_fdc_available = 0;
+  if( !periph_is_active( PERIPH_TYPE_INTERFACE1_FDC ) )
+    return;
+
+  if1_fdc_available = 1;
+  dbg( "available" );
 }
 
 void
