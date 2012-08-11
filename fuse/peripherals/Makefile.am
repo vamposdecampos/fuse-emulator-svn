@@ -40,6 +40,7 @@ libperipherals_a_SOURCES = \
   dck.c \
   fuller.c \
   if1.c \
+  if1_fdc.c \
   if2.c \
   joystick.c \
   kempmouse.c \
@@ -56,6 +57,7 @@ noinst_HEADERS = \
   dck.h \
   fuller.h \
   if1.h \
+  if1_fdc.h \
   if2.h \
   joystick.h \
   kempmouse.h \
