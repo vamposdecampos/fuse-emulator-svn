@@ -549,6 +549,40 @@ static const struct menu_item_entries menu_item_lookup[] = {
     "/Media/Disk/Opus/Drive 2/Write protect/Enable",
     "/Media/Disk/Opus/Drive 2/Write protect/Disable", 1 },
 
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC, "/Media/Disk/HC Interface 1" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_EJECT,
+    "/Media/Disk/HC Interface 1/Drive 1/Eject",
+    "/Media/Disk/HC Interface 1/Drive 1/Save As...", 0,
+    "/Media/Disk/HC Interface 1/Drive 1/Save", 0,
+    "/Media/Disk/HC Interface 1/Drive 1/Flip disk", 0,
+    "/Media/Disk/HC Interface 1/Drive 1/Write protect", 0 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_FLIP_SET,
+    "/Media/Disk/HC Interface 1/Drive 1/Flip disk/Turn upside down",
+    "/Media/Disk/HC Interface 1/Drive 1/Flip disk/Turn back", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_WP_SET,
+    "/Media/Disk/HC Interface 1/Drive 1/Write protect/Enable",
+    "/Media/Disk/HC Interface 1/Drive 1/Write protect/Disable", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B, "/Media/Disk/HC Interface 1/Drive 2" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_EJECT,
+    "/Media/Disk/HC Interface 1/Drive 2/Eject",
+    "/Media/Disk/HC Interface 1/Drive 2/Save As...", 0,
+    "/Media/Disk/HC Interface 1/Drive 2/Save", 0,
+    "/Media/Disk/HC Interface 1/Drive 2/Flip disk", 0,
+    "/Media/Disk/HC Interface 1/Drive 2/Write protect", 0 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_FLIP_SET,
+    "/Media/Disk/HC Interface 1/Drive 2/Flip disk/Turn upside down",
+    "/Media/Disk/HC Interface 1/Drive 2/Flip disk/Turn back", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_WP_SET,
+    "/Media/Disk/HC Interface 1/Drive 2/Write protect/Enable",
+    "/Media/Disk/HC Interface 1/Drive 2/Write protect/Disable", 1 },
+
   { UI_MENU_ITEM_MEDIA_IDE, "/Media/IDE" },
 
   { UI_MENU_ITEM_MEDIA_IDE_SIMPLE8BIT, "/Media/IDE/Simple 8-bit" },
