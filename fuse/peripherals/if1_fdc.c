@@ -11,6 +11,7 @@
 #include "settings.h"
 
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
+#define dbgp(x...)
 
 #define IF1_FDC_RAM_SIZE	1024	/* bytes */
 #define IF1_NUM_DRIVES 2
@@ -25,11 +26,30 @@ static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
 
 void if1_fdc_reset(int hard)
 {
+	const fdd_params_t *dt;
+	upd_fdc_drive *d;
+	int err;
+
 	dbg("called");
 
 	if1_fdc_available = 0;
 	if (!periph_is_active(PERIPH_TYPE_INTERFACE1_FDC))
 		return;
+
+	upd_fdc_master_reset(if1_fdc);
+
+	dt = &fdd_params[4];
+	fdd_init(&if1_drives[0].fdd, FDD_SHUGART, dt, 1);
+
+	/* TODO: move to _insert */
+	d = &if1_drives[0];
+	err = disk_new(&d->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_UDI);
+	fprintf(stderr, "disk_new: %d\n", err);
+	fdd_load(&d->fdd, &d->disk, 0);
+	dbg("fdd_load status: %d", d->fdd.status);
+
+	dt = &fdd_params[0];
+	fdd_init(&if1_drives[1].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1);
 
 	if1_fdc_available = 1;
 	dbg("available");
@@ -48,7 +68,68 @@ void if1_fdc_activate(void)
 	dbg("called");
 }
 
+
+libspectrum_byte if1_fdc_status(libspectrum_word port GCC_UNUSED, int *attached)
+{
+	libspectrum_byte ret;
+
+	*attached = 1;
+	ret = upd_fdc_read_status(if1_fdc);
+	dbgp("port 0x%02x --> 0x%02x", port & 0xff, ret);
+	return ret;
+}
+
+libspectrum_byte if1_fdc_read(libspectrum_word port GCC_UNUSED, int *attached)
+{
+	libspectrum_byte ret;
+
+	*attached = 1;
+	ret = upd_fdc_read_data(if1_fdc);
+	dbgp("port 0x%02x --> 0x%02x", port & 0xff, ret);
+	return ret;
+}
+
+void if1_fdc_write(libspectrum_word port GCC_UNUSED, libspectrum_byte data)
+{
+	dbgp("port 0x%02x <-- 0x%02x", port & 0xff, data);
+	upd_fdc_write_data(if1_fdc, data);
+}
+
+libspectrum_byte if1_fdc_sel_read(libspectrum_word port GCC_UNUSED, int *attached)
+{
+	libspectrum_byte ret;
+
+	*attached = 1;
+	ret = 0xfe; /* FIXME */
+	dbgp("port 0x%02x --> 0x%02x", port & 0xff, ret);
+	return ret;
+}
+
+void if1_fdc_sel_write(libspectrum_word port GCC_UNUSED, libspectrum_byte data)
+{
+	libspectrum_byte armed;
+
+	dbg("port 0x%02x <-- 0x%02x", port & 0xff, data);
+
+	if (!(data & 0x10)) {
+		dbg("FDC reset");
+		upd_fdc_master_reset(if1_fdc);
+	}
+	upd_fdc_tc(if1_fdc, data & 1);
+
+	/* TODO: ne555 monostable for selection lines */
+	armed = data & 0x08;
+	fdd_select(&if1_drives[0].fdd, armed && (data & 0x02));
+	fdd_select(&if1_drives[1].fdd, armed && (data & 0x04));
+	fdd_motoron(&if1_drives[0].fdd, armed && (data & 0x02));
+	fdd_motoron(&if1_drives[1].fdd, armed && (data & 0x04));
+}
+
+
 static periph_port_t if1_fdc_ports[] = {
+	{ 0x00fd, 0x0005, if1_fdc_sel_read, if1_fdc_sel_write },
+	{ 0x00ff, 0x0085, if1_fdc_status, NULL },
+	{ 0x00ff, 0x0087, if1_fdc_read, if1_fdc_write },
 	{ 0, 0, NULL, NULL, },
 };
 
