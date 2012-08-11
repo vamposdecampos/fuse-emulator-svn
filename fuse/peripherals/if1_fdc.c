@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "module.h"
 #include "periph.h"
+#include "peripherals/disk/fdd.h"
+#include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
 
 #if 0
@@ -15,8 +17,12 @@
 #endif
 
 #define IF1_FDC_RAM_SIZE	1024	/* bytes */
+#define IF1_NUM_DRIVES 2
 
 int if1_fdc_available;
+
+static upd_fdc *if1_fdc;
+static upd_fdc_drive if1_drives[IF1_NUM_DRIVES];
 
 static int if1_fdc_memory_source;
 static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
@@ -65,6 +71,7 @@ void if1_fdc_init(void)
 {
 	int i;
 	libspectrum_byte *ram;
+	upd_fdc_drive *d;
 
 	if1_fdc_memory_source = memory_source_register("If1 RAM");
 	ram = memory_pool_allocate_persistent(IF1_FDC_RAM_SIZE, 1);
@@ -77,6 +84,19 @@ void if1_fdc_init(void)
 		page->page = ram + (addr % IF1_FDC_RAM_SIZE);
 		page->writable = !!(addr & 0x800);
 	}
+
+	if1_fdc = upd_fdc_alloc_fdc(UPD765A, UPD_CLOCK_8MHZ);
+	if1_fdc->drive[0] = &if1_drives[0];
+	if1_fdc->drive[1] = &if1_drives[1];
+	if1_fdc->drive[2] = &if1_drives[0];
+	if1_fdc->drive[3] = &if1_drives[1];
+
+	fdd_init(&if1_drives[0].fdd, FDD_SHUGART, &fdd_params[4], 0);
+	fdd_init(&if1_drives[1].fdd, FDD_SHUGART, NULL, 0);	/* drive geometry 'autodetect' */
+	if1_fdc->set_intrq = NULL;
+	if1_fdc->reset_intrq = NULL;
+	if1_fdc->set_datarq = NULL;
+	if1_fdc->reset_datarq = NULL;
 
 	module_register(&if1_fdc_module);
 	periph_register(PERIPH_TYPE_INTERFACE1_FDC, &if1_fdc_periph);
