@@ -36,6 +36,7 @@
 #include "compat.h"
 #include "debugger/debugger.h"
 #include "if1.h"
+#include "if1_fdc.h"
 #include "machine.h"
 #include "memory.h"
 #include "module.h"
@@ -194,6 +195,7 @@ enum if1_port {
   PORT_CTR,
   PORT_NET,
   PORT_UNKNOWN,
+  PORT_BOTH,
 };
 
 static void if1_reset( int hard_reset );
@@ -536,8 +538,11 @@ microdrives_reset( void )
 static enum if1_port
 decode_port( libspectrum_word port )
 {
+    if( if1_fdc_available && !(port & 0x70) )
+      return PORT_UNKNOWN;
+
     switch( port & 0x0018 ) {
-    case 0x0000: return PORT_MDR;
+    case 0x0000: return if1_fdc_available ? PORT_BOTH : PORT_MDR;
     case 0x0008: return PORT_CTR;
     case 0x0010: return PORT_NET;
         default: return PORT_UNKNOWN;
@@ -784,6 +789,9 @@ if1_port_in( libspectrum_word port GCC_UNUSED, int *attached )
   case PORT_MDR: ret &= port_mdr_in(); break;
   case PORT_CTR: ret &= port_ctr_in(); break;
   case PORT_NET: ret &= port_net_in(); break;
+  case PORT_BOTH:
+    ret = (port_net_in() & 0x81) | (port_ctr_in() & 0x08);
+    break;
   case PORT_UNKNOWN: break;
   }
 
@@ -1020,6 +1028,10 @@ if1_port_out( libspectrum_word port GCC_UNUSED, libspectrum_byte val )
   case PORT_MDR: port_mdr_out( val ); break;
   case PORT_CTR: port_ctr_out( val ); break;
   case PORT_NET: port_net_out( val ); break;
+  case PORT_BOTH:
+    port_ctr_out( val & 0x31 );
+    port_net_out( val & 0x01 );
+    break;
   case PORT_UNKNOWN: break;
   }
 }
