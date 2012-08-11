@@ -251,6 +251,8 @@ drive_disciple1_type, string, NULL
 drive_disciple2_type, string, NULL
 drive_opus1_type, string, NULL
 drive_opus2_type, string, NULL
+drive_if1_fdc_a_type, string, NULL
+drive_if1_fdc_b_type, string, NULL
 drive_40_max_track, numeric, 42
 drive_80_max_track, numeric, 84
 

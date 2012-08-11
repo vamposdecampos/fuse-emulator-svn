@@ -40,6 +40,7 @@
 #include "peripherals/disk/disciple.h"
 #include "peripherals/disk/opus.h"
 #include "peripherals/disk/plusd.h"
+#include "peripherals/if1_fdc.h"
 #include "ui/scaler/scaler.h"
 
 /* The various severities of error level, increasing downwards */
@@ -211,6 +212,14 @@ typedef enum ui_menu_item {
   UI_MENU_ITEM_MEDIA_DISK_OPUS_2_EJECT,
   UI_MENU_ITEM_MEDIA_DISK_OPUS_2_FLIP_SET,
   UI_MENU_ITEM_MEDIA_DISK_OPUS_2_WP_SET,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_EJECT,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_FLIP_SET,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_WP_SET,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_EJECT,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_FLIP_SET,
+  UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_WP_SET,
   UI_MENU_ITEM_MEDIA_IDE,
   UI_MENU_ITEM_MEDIA_IDE_SIMPLE8BIT,
   UI_MENU_ITEM_MEDIA_IDE_SIMPLE8BIT_MASTER_EJECT,
