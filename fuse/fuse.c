@@ -291,6 +291,7 @@ static int fuse_init(int argc, char **argv)
   if( zxatasp_init() ) return 1;
   if( zxcf_init() ) return 1;
   if1_init();
+  if1_fdc_init();
   if2_init();
   if( divide_init() ) return 1;
   scld_init();
