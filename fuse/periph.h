@@ -46,6 +46,7 @@ typedef enum periph_type {
   PERIPH_TYPE_DISCIPLE,       /* DISCiPLE disk interface */
   PERIPH_TYPE_FULLER,         /* Fuller box */
   PERIPH_TYPE_INTERFACE1,     /* Interface 1 */
+  PERIPH_TYPE_INTERFACE1_FDC, /* Interface 1 with i8272 FDC */
   PERIPH_TYPE_INTERFACE2,     /* Interface 2 */
 
   /* A Kempston joystick which requires b5, b6 and b7 reset to be read */

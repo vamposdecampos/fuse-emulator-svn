@@ -186,6 +186,7 @@ base_peripherals_48_128( void )
   base_peripherals();
   periph_set_present( PERIPH_TYPE_BETA128, PERIPH_PRESENT_OPTIONAL );
   periph_set_present( PERIPH_TYPE_INTERFACE1, PERIPH_PRESENT_OPTIONAL );
+  periph_set_present( PERIPH_TYPE_INTERFACE1_FDC, PERIPH_PRESENT_OPTIONAL );
   periph_set_present( PERIPH_TYPE_INTERFACE2, PERIPH_PRESENT_OPTIONAL );
   periph_set_present( PERIPH_TYPE_MELODIK, PERIPH_PRESENT_OPTIONAL );
   periph_set_present( PERIPH_TYPE_OPUS, PERIPH_PRESENT_OPTIONAL );
