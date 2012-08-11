@@ -73,6 +73,7 @@
 #include "peripherals/ide/zxcf.h"
 #include "peripherals/joystick.h"
 #include "peripherals/if1.h"
+#include "peripherals/if1_fdc.h"
 #include "peripherals/if2.h"
 #include "peripherals/kempmouse.h"
 #include "peripherals/melodik.h"
@@ -282,6 +283,7 @@ static int fuse_init(int argc, char **argv)
   if( zxatasp_init() ) return 1;
   if( zxcf_init() ) return 1;
   if1_init();
+  if1_fdc_init();
   if2_init();
   if( divide_init() ) return 1;
   scld_init();
