@@ -42,6 +42,7 @@
 #include "peripherals/ide/zxatasp.h"
 #include "peripherals/ide/zxcf.h"
 #include "peripherals/if1.h"
+#include "peripherals/if1_fdc.h"
 #include "peripherals/if2.h"
 #include "peripherals/joystick.h"
 #include "profile.h"
