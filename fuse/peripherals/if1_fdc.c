@@ -9,6 +9,7 @@
 #include "peripherals/disk/fdd.h"
 #include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
+#include "ui/ui.h"
 
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
 #define dbgp(x...)
@@ -38,17 +39,17 @@ void if1_fdc_reset(int hard)
 
 	upd_fdc_master_reset(if1_fdc);
 
-	dt = &fdd_params[4];
+	dt = &fdd_params[option_enumerate_diskoptions_drive_if1_fdc_a_type() + 1];	/* +1 => there is no `Disabled' */
 	fdd_init(&if1_drives[0].fdd, FDD_SHUGART, dt, 1);
 
 	/* TODO: move to _insert */
 	d = &if1_drives[0];
-	err = disk_new(&d->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_UDI);
+	err = disk_new(&d->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_LOG);
 	fprintf(stderr, "disk_new: %d\n", err);
 	fdd_load(&d->fdd, &d->disk, 0);
 	dbg("fdd_load status: %d", d->fdd.status);
 
-	dt = &fdd_params[0];
+	dt = &fdd_params[option_enumerate_diskoptions_drive_if1_fdc_b_type()];
 	fdd_init(&if1_drives[1].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1);
 
 	if1_fdc_available = 1;
@@ -123,6 +124,10 @@ void if1_fdc_sel_write(libspectrum_word port GCC_UNUSED, libspectrum_byte data)
 	fdd_select(&if1_drives[1].fdd, armed && (data & 0x04));
 	fdd_motoron(&if1_drives[0].fdd, armed && (data & 0x02));
 	fdd_motoron(&if1_drives[1].fdd, armed && (data & 0x04));
+
+	ui_statusbar_update(UI_STATUSBAR_ITEM_DISK, armed
+		? UI_STATUSBAR_STATE_ACTIVE
+		: UI_STATUSBAR_STATE_INACTIVE);
 }
 
 

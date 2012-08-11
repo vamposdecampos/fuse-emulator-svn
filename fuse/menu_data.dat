@@ -394,6 +394,32 @@ Media/Disk/Opus/Drive 2/Write _protect, Branch
 Media/Disk/Opus/Drive 2/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x142
 Media/Disk/Opus/Drive 2/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x042
 
+Media/Disk/_HC Interface 1, Branch
+Media/Disk/HC Interface 1/Drive _1, Branch
+Media/Disk/HC Interface 1/Drive 1/Insert _New, Item,, menu_media_insert_new,, 0x41
+Media/Disk/HC Interface 1/Drive 1/_Insert..., Item,, menu_media_insert,, 0x41
+Media/Disk/HC Interface 1/Drive 1/_Eject, Item,, menu_media_eject,, 0x41
+Media/Disk/HC Interface 1/Drive 1/_Save, Item,, menu_media_save,, 0x041
+Media/Disk/HC Interface 1/Drive 1/Save _As..., Item,, menu_media_save,, 0x141
+Media/Disk/HC Interface 1/Drive 1/_Flip disk, Branch
+Media/Disk/HC Interface 1/Drive 1/Flip disk/Turn _upside down, Item,, menu_media_flip,, 0x141
+Media/Disk/HC Interface 1/Drive 1/Flip disk/Turn _back, Item,, menu_media_flip,, 0x041
+Media/Disk/HC Interface 1/Drive 1/Write _protect, Branch
+Media/Disk/HC Interface 1/Drive 1/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x141
+Media/Disk/HC Interface 1/Drive 1/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x041
+Media/Disk/HC Interface 1/Drive _2, Branch
+Media/Disk/HC Interface 1/Drive 2/Insert _New, Item,, menu_media_insert_new,, 0x42
+Media/Disk/HC Interface 1/Drive 2/_Insert..., Item,, menu_media_insert,, 0x42
+Media/Disk/HC Interface 1/Drive 2/_Eject, Item,, menu_media_eject,, 0x42
+Media/Disk/HC Interface 1/Drive 2/_Save, Item,, menu_media_save,, 0x042
+Media/Disk/HC Interface 1/Drive 2/Save _As..., Item,, menu_media_save,, 0x142
+Media/Disk/HC Interface 1/Drive 2/_Flip disk, Branch
+Media/Disk/HC Interface 1/Drive 2/Flip disk/Turn _upside down, Item,, menu_media_flip,, 0x142
+Media/Disk/HC Interface 1/Drive 2/Flip disk/Turn _back, Item,, menu_media_flip,, 0x042
+Media/Disk/HC Interface 1/Drive 2/Write _protect, Branch
+Media/Disk/HC Interface 1/Drive 2/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x142
+Media/Disk/HC Interface 1/Drive 2/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x042
+
 Media/_Cartridge, Branch
 Media/Cartridge/_Timex Dock, Branch
 Media/Cartridge/Timex Dock/_Insert..., Item
