@@ -96,7 +96,7 @@ Combo, (O)pus Drive 1, drive_opus1_type, INPUT_KEY_o, *Single-sided 40 track|Dou
 Combo, O(p)us Drive 2, drive_opus2_type, INPUT_KEY_p, Disabled|*Single-sided 40 track|Double-sided 40 track|Single-sided 80 track|Double-sided 80 track
 Combo, (T)ry merge 'B' side of disks, disk_try_merge, INPUT_KEY_t, Never|*With single-sided drives|Always
 Combo, (H)C IF1 Drive 1, drive_if1_fdc_a_type, INPUT_KEY_h, Single-sided 40 track|Double-sided 40 track|Single-sided 80 track|*Double-sided 80 track
-Combo, H(C) IF1 Driv(e) 2, drive_if1_fdc_b_type, INPUT_KEY_c, *Disabled|Single-sided 40 track|Double-sided 40 track|Single-sided 80 track|Double-sided 80 track
+Combo, HC (I)F1 Drive 2, drive_if1_fdc_b_type, INPUT_KEY_i, *Disabled|Single-sided 40 track|Double-sided 40 track|Single-sided 80 track|Double-sided 80 track
 Checkbox, Con(f)irm merge disk sides, disk_ask_merge, INPUT_KEY_f
 
 movie
