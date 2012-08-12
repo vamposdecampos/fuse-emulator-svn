@@ -27,8 +27,18 @@
 #ifndef FUSE_IF1_FDC_H
 #define FUSE_IF1_FDC_H
 
+#include "peripherals/disk/fdd.h"
+
+typedef enum if1_drive_number {
+	IF1_DRIVE_1 = 0,
+	IF1_DRIVE_2,
+} if1_drive_number;
+
 extern int if1_fdc_available;
 
 void if1_fdc_init(void);
+
+int if1_fdc_insert(if1_drive_number which, const char *filename, int autoload);
+fdd_t *if1_fdc_get_fdd(if1_drive_number which);
 
 #endif				/* #ifndef FUSE_IF1_FDC_H */

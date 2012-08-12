@@ -30,11 +30,13 @@
 #include "if1.h"
 #include "memory.h"
 #include "module.h"
+#include "options.h"
 #include "periph.h"
 #include "peripherals/disk/fdd.h"
 #include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
 #include "ui/ui.h"
+#include "ui/uimedia.h"
 
 #if 0
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
@@ -51,16 +53,34 @@ int if1_fdc_available;
 
 static upd_fdc *if1_fdc;
 static upd_fdc_drive if1_drives[IF1_NUM_DRIVES];
+static ui_media_drive_info_t if1_fdc_ui_drives[IF1_NUM_DRIVES];
 
 static int if1_fdc_memory_source;
 static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
+
+int
+if1_fdc_insert( if1_drive_number which, const char *filename, int autoload )
+{
+  if( which >= IF1_NUM_DRIVES ) {
+    ui_error( UI_ERROR_ERROR, "if1_fdc_insert: unknown drive %d", which );
+    fuse_abort(  );
+  }
+
+  return ui_media_drive_insert( &if1_fdc_ui_drives[ which ], filename, autoload );
+}
+
+fdd_t *
+if1_fdc_get_fdd( if1_drive_number which )
+{
+  return &if1_drives[which].fdd;
+}
+
+
 
 void
 if1_fdc_reset( int hard )
 {
   const fdd_params_t *dt;
-  upd_fdc_drive *d;
-  int err;
 
   dbg( "called" );
 
@@ -72,13 +92,6 @@ if1_fdc_reset( int hard )
 
   dt = &fdd_params[option_enumerate_diskoptions_drive_if1_fdc_a_type(  ) + 1];  /* +1 => there is no `Disabled' */
   fdd_init( &if1_drives[0].fdd, FDD_SHUGART, dt, 1 );
-
-  /* TODO: move to _insert */
-  d = &if1_drives[0];
-  err = disk_new( &d->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_LOG );
-  fprintf( stderr, "disk_new: %d\n", err );
-  fdd_load( &d->fdd, &d->disk, 0 );
-  dbg( "fdd_load status: %d", d->fdd.status );
 
   dt = &fdd_params[option_enumerate_diskoptions_drive_if1_fdc_b_type(  )];
   fdd_init( &if1_drives[1].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
@@ -190,7 +203,6 @@ if1_fdc_init( void )
 {
   int i;
   libspectrum_byte *ram;
-  upd_fdc_drive *d;
 
   if1_fdc_memory_source = memory_source_register( "If1 RAM" );
   ram = memory_pool_allocate_persistent( IF1_FDC_RAM_SIZE, 1 );
@@ -219,4 +231,56 @@ if1_fdc_init( void )
 
   module_register( &if1_fdc_module );
   periph_register( PERIPH_TYPE_INTERFACE1_FDC, &if1_fdc_periph );
+
+  for( i = 0; i < IF1_NUM_DRIVES; i++ ) {
+    if1_fdc_ui_drives[ i ].fdd = &if1_drives[ i ].fdd;
+    if1_fdc_ui_drives[ i ].disk = &if1_drives[ i ].disk;
+    ui_media_drive_register( &if1_fdc_ui_drives[ i ] );
+  }
 }
+
+static int
+ui_drive_is_available( void )
+{
+  return if1_fdc_available;
+}
+
+static const fdd_params_t *
+ui_drive_get_params_1( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_if1_fdc_a_type() + 1 ];	/* +1 => there is no `Disabled' */
+}
+
+static const fdd_params_t *
+ui_drive_get_params_2( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_if1_fdc_b_type() ];
+}
+
+static ui_media_drive_info_t if1_fdc_ui_drives[ IF1_NUM_DRIVES ] = {
+  {
+    .name = "HC Interface 1/Drive 1",
+    .controller_index = UI_MEDIA_CONTROLLER_IF1_FDC,
+    .drive_index = IF1_DRIVE_1,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC,
+    .menu_item_top = UI_MENU_ITEM_INVALID,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_A_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_1,
+  },
+  {
+    .name = "HC Interface 1/Drive 2",
+    .controller_index = UI_MEDIA_CONTROLLER_IF1_FDC,
+    .drive_index = IF1_DRIVE_2,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_2,
+  },
+};
+
