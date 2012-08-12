@@ -122,6 +122,7 @@ int ui_beta_disk_write( beta_drive_number which, int saveas );
 int ui_opus_disk_write( opus_drive_number which, int saveas );
 int ui_plusd_disk_write( plusd_drive_number which, int saveas );
 int ui_disciple_disk_write( disciple_drive_number which, int saveas );
+int ui_if1_fdc_disk_write( if1_drive_number which, int saveas );
 int ui_mdr_write( int which, int saveas );
 
 /* Get a rollback point from the given list */

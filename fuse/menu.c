@@ -390,6 +390,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
   case 5:
     disciple_disk_insert( which, NULL, 0 );
     break;
+  case 6:
+    if1_fdc_insert( which, NULL, 0 );
+    break;
   }
 }
 
@@ -424,6 +427,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   case 5:
     snprintf( title, 80, "Fuse - Insert DISCiPLE Disk %i", which + 1 );
     break;
+  case 6:
+    snprintf( title, 80, "Fuse - Insert HC IF1 Disk %i", which + 1 );
+    break;
   default:
     return;
   }
@@ -448,6 +454,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
     break;
   case 5:
     disciple_disk_insert( which, filename, 0 );
+    break;
+  case 6:
+    if1_fdc_insert( which, filename, 0 );
     break;
   }
 
@@ -485,6 +494,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_eject )
   case 5:
     disciple_disk_eject( which );
     break;
+  case 6:
+    if1_fdc_eject( which );
+    break;
   }
 }
 
@@ -518,6 +530,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_save )
   case 5:
     disciple_disk_save( which, saveas );
     break;
+  case 6:
+    if1_fdc_save( which, saveas );
+    break;
   }
 }
 
@@ -548,6 +563,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_flip )
     break;
   case 5:
     disciple_disk_flip( which, flip );
+    break;
+  case 6:
+    if1_fdc_flip( which, flip );
     break;
   }
 }
@@ -581,6 +599,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_writeprotect )
     break;
   case 5:
     disciple_disk_writeprotect( which, wrprot );
+    break;
+  case 6:
+    if1_fdc_writeprotect( which, wrprot );
     break;
   }
 

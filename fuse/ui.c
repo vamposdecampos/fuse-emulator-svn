@@ -887,6 +887,29 @@ ui_disciple_disk_write( disciple_drive_number which, int saveas )
 }
 
 int
+ui_if1_fdc_disk_write( if1_drive_number which, int saveas )
+{
+  int err;
+  char *filename = NULL, title[80];
+
+  fuse_emulation_pause();
+
+  snprintf( title, 80, "Fuse - Write HC IF1 Disk %d", which + 1);
+
+  if( saveas ) {
+    filename = ui_get_save_filename( title );
+    if( !filename ) { fuse_emulation_unpause(); return 1; }
+  }
+  err = if1_fdc_disk_write( which, filename );
+
+  if( saveas ) libspectrum_free( filename );
+
+  fuse_emulation_unpause();
+
+  return err;
+}
+
+int
 ui_mdr_write( int which, int saveas )
 {
   int err;
