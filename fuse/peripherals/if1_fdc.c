@@ -56,6 +56,7 @@ int if1_fdc_available;
 
 static upd_fdc *if1_fdc;
 static upd_fdc_drive if1_drives[IF1_NUM_DRIVES];
+static int deselect_event;
 
 static int if1_fdc_memory_source;
 static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
@@ -146,8 +147,8 @@ if1_fdc_eject( if1_drive_number which )
     return 0;
 
   if( d->disk.dirty ) {
-    ui_confirm_save_t confirm = ui_confirm_save( "Disk in drive %d has been modified.\n"
-                                                 "Do you want to save it?", which + 1 );
+    ui_confirm_save_t confirm =
+      ui_confirm_save( "Disk in drive %d has been modified.\n" "Do you want to save it?", which + 1 );
 
     switch ( confirm ) {
     case UI_CONFIRM_SAVE_SAVE:
@@ -329,9 +330,13 @@ libspectrum_byte
 if1_fdc_sel_read( libspectrum_word port GCC_UNUSED, int *attached )
 {
   libspectrum_byte ret;
+  int i;
 
   *attached = 1;
-  ret = 0xfe;                   /* FIXME */
+  ret = 0xff;
+  for( i = 0; i < IF1_NUM_DRIVES; i++ )
+    if( if1_drives[i].fdd.motoron )
+      ret &= ~1;
   dbgp( "port 0x%02x --> 0x%02x", port & 0xff, ret );
   return ret;
 }
@@ -349,16 +354,35 @@ if1_fdc_sel_write( libspectrum_word port GCC_UNUSED, libspectrum_byte data )
   }
   upd_fdc_tc( if1_fdc, data & 1 );
 
-  /* TODO: ne555 monostable for selection lines */
+  event_remove_type( deselect_event );
+
   armed = data & 0x08;
-  fdd_select( &if1_drives[0].fdd, armed && ( data & 0x02 ) );
-  fdd_select( &if1_drives[1].fdd, armed && ( data & 0x04 ) );
-  fdd_motoron( &if1_drives[0].fdd, armed && ( data & 0x02 ) );
-  fdd_motoron( &if1_drives[1].fdd, armed && ( data & 0x04 ) );
+  if( armed ) {
+    fdd_select( &if1_drives[0].fdd, armed && ( data & 0x02 ) );
+    fdd_select( &if1_drives[1].fdd, armed && ( data & 0x04 ) );
+    fdd_motoron( &if1_drives[0].fdd, armed && ( data & 0x02 ) );
+    fdd_motoron( &if1_drives[1].fdd, armed && ( data & 0x04 ) );
+  }
+  else {
+    /* The IF1 contains a 555 timer configured as a retriggerable
+     * monostable.  It uses a 470 kOhm resistor and 3.3 uF capacitor.
+     * This should give a delay of approximately 1.7 seconds.
+     */
+    event_add( tstates + 17 * machine_current->timings.processor_speed / 10, deselect_event );
+  }
 
   ui_statusbar_update( UI_STATUSBAR_ITEM_DISK, armed ? UI_STATUSBAR_STATE_ACTIVE : UI_STATUSBAR_STATE_INACTIVE );
 }
 
+static void
+if1_deselect_cb( libspectrum_dword last_tstates, int type, void *user_data )
+{
+  dbg( "called" );
+  fdd_select( &if1_drives[0].fdd, 0 );
+  fdd_select( &if1_drives[1].fdd, 0 );
+  fdd_motoron( &if1_drives[0].fdd, 0 );
+  fdd_motoron( &if1_drives[1].fdd, 0 );
+}
 
 static periph_port_t if1_fdc_ports[] = {
   {0x00fd, 0x0005, if1_fdc_sel_read, if1_fdc_sel_write},
@@ -408,6 +432,8 @@ if1_fdc_init( void )
   if1_fdc->reset_intrq = NULL;
   if1_fdc->set_datarq = NULL;
   if1_fdc->reset_datarq = NULL;
+
+  deselect_event = event_register( if1_deselect_cb, "IF1 FDC deselect" );
 
   module_register( &if1_fdc_module );
   periph_register( PERIPH_TYPE_INTERFACE1_FDC, &if1_fdc_periph );
