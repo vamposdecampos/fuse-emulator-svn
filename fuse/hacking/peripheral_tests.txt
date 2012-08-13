@@ -52,6 +52,15 @@ Interface 1
 * Enter LOAD *"m";1;"Success"
 * You should see "Congraturation! You sucsess!"
 
+Interface 1 FDC (HC)
+
+* Uncompress lib/tests/success_hc.mgt.bz2
+* Start fuse as
+  ./fuse --interface1 --interface1-fdc --if1disk lib/tests/success_hc.mgt \
+    --rom-interface-i=roms/if1-hc.rom
+* Enter RUN
+* You should see "Congraturation! You sucsess!"
+
 Opus
 
 * Start fuse as ./fuse --opus --opusdisk lib/tests/success.opd
