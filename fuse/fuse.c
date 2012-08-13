@@ -123,6 +123,7 @@ typedef struct start_files_t {
   const char *disk_plusd;
   const char *disk_beta;
   const char *disk_disciple;
+  const char *disk_if1;
   const char *dock;
   const char *if2;
   const char *playback;
@@ -485,6 +486,7 @@ setup_start_files( start_files_t *start_files )
   start_files->disk_plusd = settings_current.plusddisk_file;
   start_files->disk_disciple = settings_current.discipledisk_file;
   start_files->disk_beta = settings_current.betadisk_file;
+  start_files->disk_if1 = settings_current.if1disk_file;
   start_files->dock = settings_current.dck_file;
   start_files->if2 = settings_current.if2_file;
   start_files->playback = settings_current.playback_file;
@@ -729,6 +731,11 @@ do_start_files( start_files_t *start_files )
 
   if( start_files->disk_beta ) {
     error = utils_open_file( start_files->disk_beta, autoload, NULL );
+    if( error ) return error;
+  }
+
+  if( start_files->disk_if1 ) {
+    error = if1_fdc_insert( IF1_DRIVE_1, start_files->disk_if1, autoload );
     if( error ) return error;
   }
 
