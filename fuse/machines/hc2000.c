@@ -81,6 +81,8 @@ hc2000_reset( void )
 
   periph_clear();
   machines_periph_48();
+  periph_set_present( PERIPH_TYPE_INTERFACE1, PERIPH_PRESENT_ALWAYS );
+  periph_set_present( PERIPH_TYPE_INTERFACE1_FDC, PERIPH_PRESENT_ALWAYS );
   periph_update();
 
   beta_builtin = 0;
