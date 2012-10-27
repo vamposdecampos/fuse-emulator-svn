@@ -104,8 +104,8 @@ if1_fdc_reset( int hard )
 void
 if1_fdc_romcs( void )
 {
-  dbg( "called; if1_active=%d", if1_active );
-  if( !if1_active )
+  dbg( "called; if1_active=%d if1_fdc_available=%d", if1_active, if1_fdc_available );
+  if( !if1_active || !if1_fdc_available )
     return;
   memory_map_romcs_8k( 0x2000, if1_fdc_memory_map_romcs );
 }
