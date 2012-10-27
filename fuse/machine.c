@@ -32,6 +32,7 @@
 #include "fuse.h"
 #include "machine.h"
 #include "machines/machines.h"
+#include "machines/hc2000.h"
 #include "machines/scorpion.h"
 #include "machines/spec128.h"
 #include "machines/spec48.h"
@@ -79,6 +80,8 @@ int machine_init_machines( void )
   if (error ) return error;
   error = machine_add_machine( specplus2a_init );
   if( error ) return error;
+  error = machine_add_machine( hc2000_init    );
+  if (error ) return error;
 
   error = machine_add_machine( specplus3_init );
   if (error ) return error;
