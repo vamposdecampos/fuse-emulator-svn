@@ -227,6 +227,8 @@ rom_opus, string, "opus.rom",
 rom_plusd, string, "plusd.rom",
 rom_disciple, string, "disciple.rom",
 rom_beta128, string, "trdos.rom",
+rom_hc2000_0, string, "hc2000-0.rom"
+rom_hc2000_1, string, "hc2000-1.rom"
 
 drive_plus3a_type, string, NULL
 drive_plus3b_type, string, NULL

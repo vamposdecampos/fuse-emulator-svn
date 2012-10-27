@@ -46,6 +46,8 @@
 #define dbg(x...)
 #endif
 
+static memory_page hc2000_memory_map_cpm[MEMORY_PAGES_IN_16K];
+
 static int hc2000_reset( void );
 
 int hc2000_init( fuse_machine_info *machine )
@@ -75,8 +77,13 @@ hc2000_reset( void )
 {
   int error;
 
-  error = machine_load_rom( 0, settings_current.rom_48,
-                            settings_default.rom_48, 0x4000 );
+  error = machine_load_rom( 0, settings_current.rom_hc2000_0,
+                            settings_default.rom_hc2000_0, 0x4000 );
+  if( error ) return error;
+
+  error = machine_load_rom_bank( hc2000_memory_map_cpm, 0,
+                                 settings_current.rom_hc2000_1,
+                                 settings_default.rom_hc2000_1, 0x4000 );
   if( error ) return error;
 
   periph_clear();
