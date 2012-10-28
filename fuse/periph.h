@@ -73,6 +73,7 @@ typedef enum periph_type {
   PERIPH_TYPE_ZXCF,           /* ZXCF IDE interface */
   PERIPH_TYPE_ZXPRINTER,      /* ZX Printer */
   PERIPH_TYPE_ZXPRINTER_FULL_DECODE, /* ZX Printer responding only to 0xfb */
+  PERIPH_TYPE_HC2000_MEMORY,  /* HC2000-style memory paging */
 } periph_type;
 
 /*
