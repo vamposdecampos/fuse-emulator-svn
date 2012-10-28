@@ -34,8 +34,10 @@
 int hc2000_port_from_ula( libspectrum_word port );
 
 int hc2000_init( fuse_machine_info *machine );
-void hc2000_common_display_setup( void );
-int hc2000_common_reset( void );
 int hc2000_memory_map( void );
+
+libspectrum_byte hc2000_config_read(libspectrum_word port, int *attached);
+void hc2000_config_write(libspectrum_word port, libspectrum_byte b);
+void hc2000_memoryport_write(libspectrum_word port, libspectrum_byte b);
 
 #endif			/* #ifndef FUSE_HC2000_H */
