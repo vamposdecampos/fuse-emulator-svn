@@ -102,6 +102,27 @@ hc2000_reset( void )
   return spec48_common_reset();
 }
 
+/*
+ * System configuration port at 0x7e:
+ *  D0 - B/OL
+ *       ROM source select (0=Basic, 1=CP/M).  This simply controls the A14
+ *       address line of a 32KB ROM chip.
+ *  D1 - CPMPL (complement of CPMP)
+ *       Address decoding logic switch (0=standard, 1=CP/M).  When enabled:
+ *       * ROM is selected for accesses to 0xe000..0xffff (instead of 0..0x3fff)
+ *       * ROMCS override on the extension header is ignored (?)
+ *  D2 - lockout bit (1=ignore further writes to port)
+ *  D3 - CVS
+ *       Video memory address select (0=0x4000, 1=0xc000).  This controls an
+ *       address line output from the video generator to DRAM., i.e. the video
+ *       generator will actually read from a different memory area.
+ *
+ * CPM signal (set when writing to port 0xc7, cleared when writing to 0xc5 and
+ * on system reset); when enabled:
+ *  * pulls A13 high when CPU accesses memory in the 0xc000..0xdfff area
+ *    (this effectively maps the 0xe000 RAM in at 0xc000)
+ */
+
 int
 hc2000_memory_map( void )
 {
