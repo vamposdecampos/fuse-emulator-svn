@@ -138,6 +138,9 @@ void memory_map_page( memory_page *source[], int page_num );
 /* Page in from /ROMCS */
 void memory_map_romcs( memory_page source[] );
 
+/* Page in 16K from /ROMCS */
+void memory_map_romcs_16k( libspectrum_word address, memory_page source[] );
+
 /* Page in 8K from /ROMCS */
 void memory_map_romcs_8k( libspectrum_word address, memory_page source[] );
 

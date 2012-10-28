@@ -59,7 +59,8 @@ static upd_fdc_drive if1_drives[IF1_NUM_DRIVES];
 static int deselect_event;
 
 static int if1_fdc_memory_source;
-static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K];
+static libspectrum_byte *if1_fdc_ram;
+static memory_page if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_16K];
 
 static void
 update_menu( void )
@@ -260,12 +261,35 @@ void
 if1_fdc_reset( int hard )
 {
   const fdd_params_t *dt;
+  int i;
 
   dbg( "called" );
 
   if1_fdc_available = 0;
   if( !periph_is_active( PERIPH_TYPE_INTERFACE1_FDC ) )
     return;
+
+  dbg( "loading ROM" );
+
+  /* (re)load ROM */
+  if( machine_load_rom_bank( if1_fdc_memory_map_romcs, 0,
+			     settings_current.rom_hc_interface1,
+			     settings_default.rom_hc_interface1,
+			     0x4000 ) )
+    return;
+
+  /* overlay RAM pages */
+  for( i = 0; i < MEMORY_PAGES_IN_8K; i++ ) {
+    libspectrum_word addr = i << MEMORY_PAGE_SIZE_LOGARITHM;
+    memory_page *page = &if1_fdc_memory_map_romcs[MEMORY_PAGES_IN_8K + i];
+
+    if( !( addr & 0x800 ) )
+      continue;
+
+    page->source = if1_fdc_memory_source;
+    page->page = if1_fdc_ram + ( addr % IF1_FDC_RAM_SIZE );
+    page->writable = 1;
+  }
 
   upd_fdc_master_reset( if1_fdc );
 
@@ -287,7 +311,7 @@ if1_fdc_romcs( void )
   dbg( "called; if1_active=%d if1_fdc_available=%d", if1_active, if1_fdc_available );
   if( !if1_active || !if1_fdc_available )
     return;
-  memory_map_romcs_8k( 0x2000, if1_fdc_memory_map_romcs );
+  memory_map_romcs_16k( 0x0000, if1_fdc_memory_map_romcs );
 }
 
 void
@@ -405,20 +429,8 @@ static module_info_t if1_fdc_module = {
 void
 if1_fdc_init( void )
 {
-  int i;
-  libspectrum_byte *ram;
-
   if1_fdc_memory_source = memory_source_register( "If1 RAM" );
-  ram = memory_pool_allocate_persistent( IF1_FDC_RAM_SIZE, 1 );
-
-  for( i = 0; i < MEMORY_PAGES_IN_8K; i++ ) {
-    libspectrum_word addr = i << MEMORY_PAGE_SIZE_LOGARITHM;
-    memory_page *page = &if1_fdc_memory_map_romcs[i];
-
-    page->source = if1_fdc_memory_source;
-    page->page = ram + ( addr % IF1_FDC_RAM_SIZE );
-    page->writable = ! !( addr & 0x800 );
-  }
+  if1_fdc_ram = memory_pool_allocate_persistent( IF1_FDC_RAM_SIZE, 1 );
 
   if1_fdc = upd_fdc_alloc_fdc( UPD765A, UPD_CLOCK_8MHZ );
   if1_fdc->drive[0] = &if1_drives[0];
