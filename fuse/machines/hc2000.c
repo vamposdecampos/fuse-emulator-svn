@@ -1,4 +1,4 @@
-/* spec48.c: Spectrum 48K specific routines
+/* hc2000.c: Spectrum 48K specific routines
    Copyright (c) 1999-2011 Philip Kendall
    Copyright (c) 2012 Alex Badea
 
@@ -30,6 +30,7 @@
 
 #include <libspectrum.h>
 
+#include "compat.h"
 #include "machine.h"
 #include "machines_periph.h"
 #include "memory.h"
@@ -46,9 +47,14 @@
 #define dbg(x...)
 #endif
 
-static memory_page hc2000_memory_map_cpm[MEMORY_PAGES_IN_16K];
-
 static int hc2000_reset( void );
+
+int
+hc2000_port_from_ula( libspectrum_word port GCC_UNUSED )
+{
+  /* No contended ports */
+  return 0;
+}
 
 int hc2000_init( fuse_machine_info *machine )
 {
@@ -58,10 +64,10 @@ int hc2000_init( fuse_machine_info *machine )
   machine->reset = hc2000_reset;
 
   machine->timex = 0;
-  machine->ram.port_from_ula         = spec48_port_from_ula;
+  machine->ram.port_from_ula         = hc2000_port_from_ula;
   machine->ram.contend_delay	     = spectrum_contend_delay_65432100;
   machine->ram.contend_delay_no_mreq = spectrum_contend_delay_65432100;
-  machine->ram.valid_pages	     = 3;
+  machine->ram.valid_pages	     = 4;
 
   machine->unattached_port = spectrum_unattached_port;
 
@@ -81,25 +87,37 @@ hc2000_reset( void )
                             settings_default.rom_hc2000_0, 0x4000 );
   if( error ) return error;
 
-  error = machine_load_rom_bank( hc2000_memory_map_cpm, 0,
-                                 settings_current.rom_hc2000_1,
-                                 settings_default.rom_hc2000_1, 0x4000 );
+  error = machine_load_rom( 1, settings_current.rom_hc2000_1,
+                            settings_default.rom_hc2000_1, 0x4000 );
   if( error ) return error;
 
   periph_clear();
   machines_periph_48();
   periph_set_present( PERIPH_TYPE_INTERFACE1, PERIPH_PRESENT_ALWAYS );
   periph_set_present( PERIPH_TYPE_INTERFACE1_FDC, PERIPH_PRESENT_ALWAYS );
+  periph_set_present( PERIPH_TYPE_HC2000_MEMORY, PERIPH_PRESENT_ALWAYS );
   periph_update();
 
   beta_builtin = 0;
 
   memory_current_screen = 5;
   memory_screen_mask = 0xffff;
+  machine_current->ram.locked = 0;
+  machine_current->ram.last_byte = 0;
+  machine_current->ram.last_byte2 = 0xc5;
 
   spec48_common_display_setup();
 
-  return spec48_common_reset();
+  error = spec48_common_reset();
+  if( error )
+    return error;
+
+  memory_ram_set_16k_contention( 0, 0 );
+  memory_ram_set_16k_contention( 1, 0 );
+  memory_ram_set_16k_contention( 2, 0 );
+  memory_ram_set_16k_contention( 3, 0 );
+
+  return 0;
 }
 
 /*
@@ -123,10 +141,78 @@ hc2000_reset( void )
  *    (this effectively maps the 0xe000 RAM in at 0xc000)
  */
 
+static void
+memory_map_16k_subpage( libspectrum_word address, memory_page source[], int page_num, int half )
+{
+  int i;
+
+  for( i = 0; i < MEMORY_PAGES_IN_8K; i++ ) {
+    int page = ( address >> MEMORY_PAGE_SIZE_LOGARITHM ) + i;
+    memory_map_read[ page ] = memory_map_write[ page ] =
+      source[ page_num * MEMORY_PAGES_IN_16K + i + half * MEMORY_PAGES_IN_8K ];
+  }
+}
+
+
 int
 hc2000_memory_map( void )
 {
-  memory_map_16k( 0x0000, memory_map_rom, 0 );
-  memory_romcs_map();
+  int rom, rom_page, cpm_page, vid_page;
+  int screen;
+
+  rom = !!(machine_current->ram.last_byte & 0x01); /* B/OL */
+  rom_page = !!(machine_current->ram.last_byte & 0x02); /* CPMPL */
+  vid_page = !!(machine_current->ram.last_byte & 0x08); /* CVS */
+  cpm_page = machine_current->ram.last_byte2 == 0xc7; /* CPM */
+  machine_current->ram.current_rom = rom;
+  dbg("rom=%d rom_page=%d vid_page=%d cpm_page=%d", rom, rom_page, vid_page, cpm_page);
+
+  if( !rom_page )
+    memory_map_16k( 0x0000, memory_map_rom, rom );
+  else
+    memory_map_16k( 0x0000, memory_map_ram, 0 );
+  memory_map_16k( 0x4000, memory_map_ram, 1 );
+  memory_map_16k( 0x8000, memory_map_ram, 2 );
+  memory_map_16k( 0xc000, memory_map_ram, 3 );
+
+  if( cpm_page )
+    memory_map_16k_subpage( 0xc000, memory_map_ram, 3, 1 );
+  if( rom_page )
+    memory_map_16k_subpage( 0xe000, memory_map_rom, rom, 1 );
+
+  screen = vid_page ? 3 : 1;
+  if( memory_current_screen != screen ) {
+    memory_current_screen = screen;
+    display_update_critical( 0, 0 );
+    display_refresh_main_screen();
+  }
+
+  if( !rom_page )
+    memory_romcs_map();
   return 0;
 }
+
+libspectrum_byte hc2000_config_read(libspectrum_word port, int *attached)
+{
+  dbg("value=0x%02x", machine_current->ram.last_byte);
+  *attached = 1;
+  return machine_current->ram.last_byte;
+}
+
+void hc2000_config_write(libspectrum_word port, libspectrum_byte b)
+{
+  dbg("%scfg=0x%02x", machine_current->ram.locked ? "**LOCKED** " : "", b);
+  if( machine_current->ram.locked )
+    return;
+  machine_current->ram.last_byte = b;
+  machine_current->ram.locked = b & 0x04;
+  machine_current->memory_map();
+}
+
+void hc2000_memoryport_write(libspectrum_word port, libspectrum_byte b)
+{
+  dbg("port=0x%04x value=0x%02x", port, b);
+  machine_current->ram.last_byte2 = port & 0xff;
+  machine_current->memory_map();
+}
+

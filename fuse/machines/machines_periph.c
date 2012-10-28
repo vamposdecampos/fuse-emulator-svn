@@ -33,6 +33,7 @@
 #include "spec128.h"
 #include "specplus3.h"
 #include "tc2068.h"
+#include "hc2000.h"
 
 static void
 spec_se_memoryport_write( libspectrum_word port GCC_UNUSED,
@@ -150,6 +151,18 @@ static const periph_t pentagon1024_memory = {
   NULL
 };
 
+static const periph_port_t hc2000_memory_ports[] = {
+  { 0x0081, 0x0000, hc2000_config_read, hc2000_config_write },
+  { 0x00ff, 0x00c5, NULL, hc2000_memoryport_write },
+  { 0x00ff, 0x00c7, NULL, hc2000_memoryport_write },
+  { 0, 0, NULL, NULL }
+};
+
+static const periph_t hc2000_memory = {
+  NULL,
+  hc2000_memory_ports
+};
+
 void
 machines_periph_init( void )
 {
@@ -161,6 +174,7 @@ machines_periph_init( void )
   periph_register( PERIPH_TYPE_BETA128_PENTAGON, &beta128_pentagon );
   periph_register( PERIPH_TYPE_BETA128_PENTAGON_LATE, &beta128_pentagon_late );
   periph_register( PERIPH_TYPE_PENTAGON1024_MEMORY, &pentagon1024_memory );
+  periph_register( PERIPH_TYPE_HC2000_MEMORY, &hc2000_memory );
 }
 
 /* Peripherals generally available on all machines; the Timex machines and
