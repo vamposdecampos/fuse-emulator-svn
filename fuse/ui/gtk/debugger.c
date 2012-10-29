@@ -81,6 +81,7 @@ enum {
 
 enum {
   DISASSEMBLY_COLUMN_ADDRESS,
+  DISASSEMBLY_COLUMN_BYTES,
   DISASSEMBLY_COLUMN_INSTRUCTION,
 
   DISASSEMBLY_COLUMN_COUNT
@@ -555,7 +556,7 @@ create_disassembly( GtkBox *parent, gtkui_font font )
   size_t i;
 
   GtkWidget *scrollbar;
-  const gchar *titles[] = { "Address", "Instruction" };
+  const gchar *titles[] = { "Address", "Bytes", "Instruction" };
 
   /* A box to hold the disassembly listing and the scrollbar */
   disassembly_box = gtk_box_new( GTK_ORIENTATION_HORIZONTAL, 0 );
@@ -563,7 +564,7 @@ create_disassembly( GtkBox *parent, gtkui_font font )
 
   /* The disassembly itself */
   disassembly_model =
-    gtk_list_store_new( DISASSEMBLY_COLUMN_COUNT, G_TYPE_STRING, G_TYPE_STRING );
+    gtk_list_store_new( DISASSEMBLY_COLUMN_COUNT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING );
 
   disassembly = gtk_tree_view_new_with_model( GTK_TREE_MODEL( disassembly_model ) );
   for( i = 0; i < DISASSEMBLY_COLUMN_COUNT; i++ ) {
@@ -1012,10 +1013,22 @@ update_disassembly( void )
 
   for( i = 0, address = disassembly_top; i < 20; i++ ) {
     size_t l, length;
-    char buffer1[40], buffer2[40];
+    char buffer1[40], buffer2[40], buf_bytes[64], *p;
 
     snprintf( buffer1, sizeof( buffer1 ), format_16_bit(), address );
     debugger_disassemble( buffer2, sizeof( buffer2 ), &length, address );
+
+    p = buf_bytes;
+    for( l = 0; l < length; l++ )
+      p += snprintf( p, sizeof(buf_bytes) - (p - buf_bytes), "%02x ", readbyte_internal( address + l ) );
+
+    while( l < 5 ) {
+      *p++ = ' ';
+      *p++ = ' ';
+      *p++ = ' ';
+      l++;
+    }
+    *p = 0;
 
     /* pad to 16 characters (long instruction) to avoid varying width */
     l = strlen( buffer2 );
@@ -1023,7 +1036,11 @@ update_disassembly( void )
     buffer2[l] = 0;
 
     gtk_list_store_append( disassembly_model, &it );
-    gtk_list_store_set( disassembly_model, &it, DISASSEMBLY_COLUMN_ADDRESS, buffer1, DISASSEMBLY_COLUMN_INSTRUCTION, buffer2, -1 );
+    gtk_list_store_set( disassembly_model, &it,
+      DISASSEMBLY_COLUMN_ADDRESS, buffer1,
+      DISASSEMBLY_COLUMN_BYTES, buf_bytes,
+      DISASSEMBLY_COLUMN_INSTRUCTION, buffer2,
+      -1 );
 
     address += length;
   }
