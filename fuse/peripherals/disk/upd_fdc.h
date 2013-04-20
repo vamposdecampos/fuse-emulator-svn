@@ -139,6 +139,7 @@ typedef struct upd_fdc {
   int cycle;			/* read/write cycle num */
   int del_data;			/* READ/WRITE deleted data */
   int mt;			/* multitrack operations */
+  int tc;			/* Terminal Count asserted */
   int mf;			/* MFM mode */
   int sk;			/* skip deleted/not deleted data */
   int hd;			/* physical head address */
@@ -174,6 +175,7 @@ void upd_fdc_init_events( void );
 /* allocate an fdc */
 upd_fdc *upd_fdc_alloc_fdc( upd_type_t type, upd_clock_t clock );
 void upd_fdc_master_reset( upd_fdc *f );
+void upd_fdc_tc( upd_fdc *f, int tc );
 
 libspectrum_byte upd_fdc_read_status( upd_fdc *f );
 

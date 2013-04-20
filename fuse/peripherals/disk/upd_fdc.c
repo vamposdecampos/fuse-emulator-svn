@@ -117,6 +117,7 @@ cmd_identify( upd_fdc *f )
       break;
     r++;
   }
+  f->tc = 0;
   f->mt = f->command_register >> 7;		/* Multi track READ/WRITE */
   f->mf = ( f->command_register >> 6 ) & 0x01;	/* MFM format */
   f->sk = ( f->command_register >> 5 ) & 0x01;	/* Skip DELETED/NONDELETED sectors */
@@ -148,6 +149,7 @@ upd_fdc_master_reset( upd_fdc *f )
   f->cycle = 0;
   f->last_sector_read = 0;
   f->read_id = 0;
+  f->tc = 0;
   /* preserve disabled state of speedlock_hack */
   if( f->speedlock != -1 ) f->speedlock = 0;
 }
@@ -608,7 +610,7 @@ start_read_data( upd_fdc *f )
 skip_deleted_sector:
 multi_track_next:
   if( f->first_rw || f->read_id || 
-      f->data_register[5] > f->data_register[3] ) {
+      (!f->tc && f->data_register[5] > f->data_register[3]) ) {
     if( !f->read_id ) {
       if( !f->first_rw )
         f->data_register[3]++;
@@ -667,7 +669,7 @@ abort_read_data:
 * 3. terminal count is not received
 * note: in +3 uPD765 never got TC
 */
-    if( !f->status_register[0] && !f->status_register[1] ) {
+    if( !f->status_register[0] && !f->status_register[1] && !f->tc ) {
       f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
       f->status_register[1] |= UPD_FDC_ST1_EOF_CYLINDER;
     }
@@ -701,7 +703,7 @@ start_write_data( upd_fdc *f )
 
 multi_track_next:
   if( f->first_rw || f->read_id ||
-      f->data_register[5] > f->data_register[3] ) {
+      (!f->tc && f->data_register[5] > f->data_register[3]) ) {
     if( !f->read_id ) {
       if( !f->first_rw )
         f->data_register[3]++;
@@ -768,8 +770,10 @@ abort_write_data:
 * 3. terminal count is not received
 * note: in +3 uPD765 never got TC
 */
-    f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
-    f->status_register[1] |= UPD_FDC_ST1_EOF_CYLINDER;
+    if( !f->tc ) {
+      f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
+      f->status_register[1] |= UPD_FDC_ST1_EOF_CYLINDER;
+    }
     f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
     f->intrq = UPD_INTRQ_RESULT;
     cmd_result( f );
@@ -781,6 +785,14 @@ abort_write_data:
   event_add_with_data( tstates + 4 *			/* 2 revolution: 2 * 200 / 1000 */
 		       machine_current->timings.processor_speed / 10,
 		       timeout_event, f );
+}
+
+static void
+start_readwrite_data_later( upd_fdc *f )
+{
+  event_add_with_data( tstates +
+		       machine_current->timings.processor_speed / 1000,
+		       fdc_event, f );
 }
 
 static void
@@ -931,7 +943,7 @@ upd_fdc_read_data( upd_fdc *f )
     /* EOSpeedlock hack */
 
     r = d->fdd.data & 0xff;
-    if( f->data_offset == f->rlen ) {	/* send only rlen byte to host */
+    if( f->data_offset == f->rlen || f->tc ) {	/* send only rlen byte to host */
       while( f->data_offset < f->sector_length ) {
 	fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
 	f->data_offset++;
@@ -953,14 +965,14 @@ upd_fdc_read_data( upd_fdc *f )
 	
       if( f->cmd->id == UPD_CMD_READ_DATA ) {
 	if( f->ddam != f->del_data ) {	/* we read a not 'wanted' sector... so */
-	  if( f->data_register[5] > f->data_register[3] )	/* if we want to read more... */
+	  if( !f->tc && f->data_register[5] > f->data_register[3] )	/* if we want to read more... */
             f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
           cmd_result( f );			/* set up result phase */
     	  return r;
 	}
 	f->rev = 2;
         f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
-	start_read_data( f );
+        start_readwrite_data_later( f );
       } else {				/* READ DIAG */
 	f->data_register[3]++;		/*FIXME ??? */
 	f->data_register[5]--;
@@ -969,7 +981,7 @@ upd_fdc_read_data( upd_fdc *f )
           return r;
         }
         f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
-        start_read_diag( f );
+        start_readwrite_data_later( f );
       }
     }
     return r;
@@ -1100,7 +1112,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
       d->fdd.data = data;
       fdd_read_write_data( &d->fdd, FDD_WRITE ); crc_add( f, d );
     
-      if( f->data_offset == f->rlen ) {	/* read only rlen byte from host */
+      if( f->data_offset == f->rlen || f->tc ) {	/* read only rlen byte from host */
         d->fdd.data = 0x00;
         while( f->data_offset < f->sector_length ) {	/* fill with 0x00 */
 	  fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
@@ -1113,7 +1125,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
         d->fdd.data = f->crc & 0xff;
         fdd_read_write_data( &d->fdd, FDD_WRITE );	/* write crc2 */
         f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
-	start_write_data( f );
+        start_readwrite_data_later( f );
       }
       return;
     } else {						/* SCAN */
@@ -1141,7 +1153,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
 	
 	f->data_register[3] += f->data_register[7];	/*FIXME what about STP>2 or STP<1 */
 	if( f->ddam != f->del_data ) {			/* we read a not 'wanted' sector... so */
-	  if( f->data_register[5] >= f->data_register[3] )	/* if we want to read more... */
+	  if( !f->tc && f->data_register[5] >= f->data_register[3] )	/* if we want to read more... */
             f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
     	  cmd_result( f );			/* set up result phase */
     	  return;
@@ -1153,7 +1165,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
 	}
 	f->rev = 2;
         f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
-	start_read_data( f );
+	start_readwrite_data_later( f );
       }
       return;
     }
@@ -1385,4 +1397,10 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
   } else {
     f->cycle++;
   }
+}
+
+void upd_fdc_tc( upd_fdc *f, int tc )
+{
+  if (tc > 0)
+    f->tc = 1;
 }
