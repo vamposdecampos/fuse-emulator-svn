@@ -29,7 +29,8 @@ AM_CPPFLAGS += @LIBSPEC_CFLAGS@ @GTK_CFLAGS@ @GLIB_CFLAGS@
 
 noinst_LIBRARIES = libmachines.a
 
-libmachines_a_SOURCES = machines_periph.c \
+libmachines_a_SOURCES = hc2000.c \
+			machines_periph.c \
                         pentagon.c \
 			pentagon512.c \
 			pentagon1024.c \
@@ -47,7 +48,8 @@ libmachines_a_SOURCES = machines_periph.c \
 			tc2068.c \
 			ts2068.c
 
-noinst_HEADERS = machines.h \
+noinst_HEADERS = hc2000.h \
+		 machines.h \
 		 machines_periph.h \
 		 pentagon.h \
 		 scorpion.h \

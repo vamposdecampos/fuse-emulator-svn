@@ -60,6 +60,7 @@ contention_test( void )
     case LIBSPECTRUM_MACHINE_16:
     case LIBSPECTRUM_MACHINE_48:
     case LIBSPECTRUM_MACHINE_SE:
+    case LIBSPECTRUM_MACHINE_HC2000:
       target = 2308927488UL;
       break;
     case LIBSPECTRUM_MACHINE_48_NTSC:
@@ -96,6 +97,7 @@ contention_test( void )
     case LIBSPECTRUM_MACHINE_16:
     case LIBSPECTRUM_MACHINE_48:
     case LIBSPECTRUM_MACHINE_SE:
+    case LIBSPECTRUM_MACHINE_HC2000:
       target = 2308862976UL;
       break;
     case LIBSPECTRUM_MACHINE_48_NTSC:
@@ -154,6 +156,7 @@ floating_bus_test( void )
     switch( machine_current->machine ) {
     case LIBSPECTRUM_MACHINE_16:
     case LIBSPECTRUM_MACHINE_48:
+    case LIBSPECTRUM_MACHINE_HC2000:
       target = 3426156480UL;
       break;
     case LIBSPECTRUM_MACHINE_48_NTSC:
@@ -184,6 +187,7 @@ floating_bus_test( void )
     switch( machine_current->machine ) {
     case LIBSPECTRUM_MACHINE_16:
     case LIBSPECTRUM_MACHINE_48:
+    case LIBSPECTRUM_MACHINE_HC2000:
       target = 3427723200UL;
       break;
     case LIBSPECTRUM_MACHINE_48_NTSC:
@@ -668,6 +672,7 @@ paging_test( void )
       break;
     case LIBSPECTRUM_MACHINE_48:
     case LIBSPECTRUM_MACHINE_48_NTSC:
+    case LIBSPECTRUM_MACHINE_HC2000:
       r += unittests_paging_test_48( 2 );
       break;
     case LIBSPECTRUM_MACHINE_128:
