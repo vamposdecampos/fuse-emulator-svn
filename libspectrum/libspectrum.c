@@ -248,6 +248,7 @@ libspectrum_machine_name( libspectrum_machine type )
   case LIBSPECTRUM_MACHINE_SCORP:    return "Scorpion ZS 256";
   case LIBSPECTRUM_MACHINE_SE:       return "Spectrum SE";
   case LIBSPECTRUM_MACHINE_HC2000:   return "HC-2000";
+  case LIBSPECTRUM_MACHINE_COBRA:    return "CoBra";
 
   case LIBSPECTRUM_MACHINE_UNKNOWN: return "(unknown)";
   }

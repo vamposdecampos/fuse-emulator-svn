@@ -1296,6 +1296,7 @@ write_extended_header( libspectrum_byte **buffer, libspectrum_byte **ptr,
   switch( libspectrum_snap_machine( snap ) ) {
   case LIBSPECTRUM_MACHINE_48_NTSC:
   case LIBSPECTRUM_MACHINE_HC2000:
+  case LIBSPECTRUM_MACHINE_COBRA:
     *flags |= LIBSPECTRUM_FLAG_SNAPSHOT_MAJOR_INFO_LOSS;
     /* fall through */
   case LIBSPECTRUM_MACHINE_16:

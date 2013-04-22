@@ -59,6 +59,7 @@ typedef enum szx_machine_type {
   SZX_MACHINE_48_NTSC,
   SZX_MACHINE_128KE,
   SZX_MACHINE_HC2000,
+  SZX_MACHINE_COBRA,
 
 } szx_machine_type;
 
@@ -2384,6 +2385,10 @@ libspectrum_szx_read( libspectrum_snap *snap, const libspectrum_byte *buffer,
     libspectrum_snap_set_machine( snap, LIBSPECTRUM_MACHINE_HC2000 );
     break;
 
+  case SZX_MACHINE_COBRA:
+    libspectrum_snap_set_machine( snap, LIBSPECTRUM_MACHINE_COBRA );
+    break;
+
   default:
     libspectrum_print_error(
       LIBSPECTRUM_ERROR_UNKNOWN,
@@ -2625,6 +2630,7 @@ write_file_header( libspectrum_byte **buffer, libspectrum_byte **ptr,
   case LIBSPECTRUM_MACHINE_PENT512: **ptr = SZX_MACHINE_PENTAGON512; break;
   case LIBSPECTRUM_MACHINE_PENT1024: **ptr = SZX_MACHINE_PENTAGON1024; break;
   case LIBSPECTRUM_MACHINE_HC2000: **ptr = SZX_MACHINE_HC2000; break;
+  case LIBSPECTRUM_MACHINE_COBRA: **ptr = SZX_MACHINE_COBRA; break;
 
   case LIBSPECTRUM_MACHINE_UNKNOWN:
     libspectrum_print_error( LIBSPECTRUM_ERROR_LOGIC,
@@ -2905,6 +2911,7 @@ write_rom_chunk( libspectrum_byte **buffer, libspectrum_byte **ptr, size_t *leng
   case LIBSPECTRUM_MACHINE_48_NTSC:
   case LIBSPECTRUM_MACHINE_TC2048:
   case LIBSPECTRUM_MACHINE_HC2000: /* TODO: 4 ROMs instead */
+  case LIBSPECTRUM_MACHINE_COBRA: /* TODO: more ROMs */
     /* 1 ROM = 16k */
     if( ( libspectrum_snap_custom_rom_pages( snap ) != 1 ||
           data_length != 0x4000 ) ) {

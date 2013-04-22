@@ -346,6 +346,7 @@ libspectrum_sna_write( libspectrum_byte **buffer, size_t *length,
   case LIBSPECTRUM_MACHINE_TC2068:
   case LIBSPECTRUM_MACHINE_TS2068:
   case LIBSPECTRUM_MACHINE_HC2000:
+  case LIBSPECTRUM_MACHINE_COBRA:
     *out_flags |= LIBSPECTRUM_FLAG_SNAPSHOT_MAJOR_INFO_LOSS;
     /* Fall through */
   case LIBSPECTRUM_MACHINE_16:

@@ -315,6 +315,7 @@ typedef enum libspectrum_machine {
   LIBSPECTRUM_MACHINE_128E,
 
   LIBSPECTRUM_MACHINE_HC2000,
+  LIBSPECTRUM_MACHINE_COBRA,
 
 } libspectrum_machine;
 
