@@ -75,8 +75,8 @@ cobra_reset( void )
 {
   int error;
 
-  error = machine_load_rom( 0, settings_current.rom_48,
-                            settings_default.rom_48, 0x4000 );
+  error = machine_load_rom( 0, settings_current.rom_cobra_0,
+                            settings_default.rom_cobra_0, 0x4000 );
   if( error ) return error;
 
   periph_clear();
