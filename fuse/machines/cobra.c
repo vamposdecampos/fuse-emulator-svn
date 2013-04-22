@@ -78,6 +78,9 @@ cobra_reset( void )
   error = machine_load_rom( 0, settings_current.rom_cobra_0,
                             settings_default.rom_cobra_0, 0x4000 );
   if( error ) return error;
+  error = machine_load_rom( 1, settings_current.rom_cobra_1,
+                            settings_default.rom_cobra_1, 0x4000 );
+  if( error ) return error;
 
   periph_clear();
   machines_periph_48();
@@ -93,10 +96,26 @@ cobra_reset( void )
   return spec48_common_reset();
 }
 
+static void
+memory_map_16k_subpage( libspectrum_word address, memory_page source[], int page_num, int half )
+{
+  int i;
+
+  for( i = 0; i < MEMORY_PAGES_IN_8K; i++ ) {
+    int page = ( address >> MEMORY_PAGE_SIZE_LOGARITHM ) + i;
+    memory_map_read[ page ] = memory_map_write[ page ] =
+      source[ page_num * MEMORY_PAGES_IN_16K + i + half * MEMORY_PAGES_IN_8K ];
+  }
+}
+
 int
 cobra_memory_map( void )
 {
   memory_map_16k( 0x0000, memory_map_rom, 0 );
+  memory_map_16k( 0x4000, memory_map_rom, 1 );
+  memory_map_16k_subpage( 0xa000, memory_map_ram, 0, 0 );
+  memory_map_16k( 0xc000, memory_map_ram, 5 );
+  memory_map_16k_subpage( 0xe000, memory_map_ram, 0, 1 );
   memory_romcs_map();
   return 0;
 }
