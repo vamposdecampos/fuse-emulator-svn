@@ -358,6 +358,9 @@ LIBSPECTRUM_MACHINE_CAPABILITY_PENT512_MEMORY; /* Pentagon 512 memory paging */
 extern WIN32_DLL const int
 LIBSPECTRUM_MACHINE_CAPABILITY_PENT1024_MEMORY;
 					      /* Pentagon 1024 memory paging */
+extern WIN32_DLL const int
+LIBSPECTRUM_MACHINE_CAPABILITY_RFSH_PAGING;
+					        /* CoBra-style memory paging */
 
 /* Get the capabilities of a machine */
 WIN32_DLL int libspectrum_machine_capabilities( libspectrum_machine type );

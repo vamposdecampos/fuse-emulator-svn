@@ -288,6 +288,8 @@ const int LIBSPECTRUM_MACHINE_CAPABILITY_PENT512_MEMORY = 1 << 14;
 					 /* Pentagon 512-style memory paging */
 const int LIBSPECTRUM_MACHINE_CAPABILITY_PENT1024_MEMORY = 1 << 15;
 					/* Pentagon 1024-style memory paging */
+const int LIBSPECTRUM_MACHINE_CAPABILITY_RFSH_PAGING = 1 << 16;
+						/* CoBra-style memory paging */
 
 /* Given a machine type, what features does it have? */
 int
@@ -443,6 +445,14 @@ libspectrum_machine_capabilities( libspectrum_machine type )
   switch( type ) {
   case LIBSPECTRUM_MACHINE_PENT1024:
     capabilities |= LIBSPECTRUM_MACHINE_CAPABILITY_PENT1024_MEMORY; break;
+  default:
+    break;
+  }
+
+  /* CoBra-style memory paging */
+  switch( type ) {
+  case LIBSPECTRUM_MACHINE_COBRA:
+    capabilities |= LIBSPECTRUM_MACHINE_CAPABILITY_RFSH_PAGING; break;
   default:
     break;
   }
