@@ -38,4 +38,6 @@ void cobra_common_display_setup( void );
 int cobra_common_reset( void );
 int cobra_memory_map( void );
 
+void rfsh_check_page( libspectrum_byte R7 );
+
 #endif			/* #ifndef FUSE_COBRA_H */

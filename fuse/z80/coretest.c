@@ -526,6 +526,12 @@ spectranet_nmi_flipflop( void )
   return 0;
 }
 
+void
+rfsh_check_page( libspectrum_byte r7 GCC_UNUSED )
+{
+  abort();
+}
+
 int
 rzx_frame( void )
 {

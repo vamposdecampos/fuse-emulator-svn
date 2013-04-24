@@ -30,6 +30,7 @@
 #include "debugger/debugger.h"
 #include "event.h"
 #include "machine.h"
+#include "machines/cobra.h"
 #include "memory.h"
 #include "periph.h"
 #include "peripherals/disk/beta.h"
@@ -103,6 +104,8 @@ enum {
 static libspectrum_byte opcode = 0x00;
 #endif
 
+static libspectrum_byte last_R7 = 0x00;
+
 /* Execute Z80 opcodes until the next event */
 void
 z80_do_opcodes( void )
@@ -113,6 +116,8 @@ z80_do_opcodes( void )
 
   int even_m1 =
     machine_current->capabilities & LIBSPECTRUM_MACHINE_CAPABILITY_EVEN_M1; 
+  int rfsh_paging =
+    machine_current->capabilities & LIBSPECTRUM_MACHINE_CAPABILITY_RFSH_PAGING;
 
 #ifdef __GNUC__
 
@@ -271,6 +276,14 @@ z80_do_opcodes( void )
 
     if( PC == 0x007c )
       spectranet_unpage();
+
+    END_CHECK
+
+    CHECK( rpage, rfsh_paging )
+
+    if( (R7 ^ last_R7) & 0x80 )
+        rfsh_check_page( R7 );
+    last_R7 = R7;
 
     END_CHECK
 

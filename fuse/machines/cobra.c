@@ -119,3 +119,8 @@ cobra_memory_map( void )
   memory_romcs_map();
   return 0;
 }
+
+void rfsh_check_page( libspectrum_byte R7 )
+{
+  dbg( "R7=%d", R7 & 0x80 );
+}
