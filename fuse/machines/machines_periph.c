@@ -34,6 +34,7 @@
 #include "specplus3.h"
 #include "tc2068.h"
 #include "hc2000.h"
+#include "cobra.h"
 
 static void
 spec_se_memoryport_write( libspectrum_word port GCC_UNUSED,
@@ -163,6 +164,16 @@ static const periph_t hc2000_memory = {
   hc2000_memory_ports
 };
 
+static const periph_port_t cobra_memory_ports[] = {
+  { 0x0001, 0x0000, NULL, cobra_ula_write },
+  { 0, 0, NULL, NULL }
+};
+
+static const periph_t cobra_memory = {
+  NULL,
+  cobra_memory_ports
+};
+
 void
 machines_periph_init( void )
 {
@@ -175,6 +186,7 @@ machines_periph_init( void )
   periph_register( PERIPH_TYPE_BETA128_PENTAGON_LATE, &beta128_pentagon_late );
   periph_register( PERIPH_TYPE_PENTAGON1024_MEMORY, &pentagon1024_memory );
   periph_register( PERIPH_TYPE_HC2000_MEMORY, &hc2000_memory );
+  periph_register( PERIPH_TYPE_COBRA_MEMORY, &cobra_memory );
 }
 
 /* Peripherals generally available on all machines; the Timex machines and

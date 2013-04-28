@@ -89,6 +89,7 @@ cobra_reset( void )
 
   periph_clear();
   machines_periph_48();
+  periph_set_present( PERIPH_TYPE_COBRA_MEMORY, PERIPH_PRESENT_ALWAYS );
 
   beta_builtin = 0;
 
@@ -145,6 +146,17 @@ cobra_memory_map( void )
     memory_map_16k( 0xc000, memory_map_ram, 0 );
   }
   return 0;
+}
+
+void cobra_ula_write( libspectrum_word port, libspectrum_byte b )
+{
+  dbg( "0x%02x %s%s%s%s%s", b,
+    (b & (1 << 3)) ? "TO " : "   ",
+    (b & (1 << 4)) ? "LS " : "   ",
+    (b & (1 << 5)) ? "O5 " : "   ",
+    (b & (1 << 6)) ? "O6 " : "   ",
+    (b & (1 << 7)) ? "SO " : "   "
+  );
 }
 
 void rfsh_check_page( libspectrum_byte R7 )
