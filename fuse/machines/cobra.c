@@ -30,6 +30,7 @@
 
 #include <libspectrum.h>
 
+#include "debugger/debugger.h"
 #include "machine.h"
 #include "machines_periph.h"
 #include "memory.h"
@@ -48,8 +49,12 @@
 
 static int cobra_reset( void );
 
+static int page_event, unpage_event;
+
 int cobra_init( fuse_machine_info *machine )
 {
+  periph_register_paging_events( "cobra", &page_event, &unpage_event );
+
   machine->machine = LIBSPECTRUM_MACHINE_COBRA;
   machine->id = "cobra";
 
@@ -145,6 +150,7 @@ cobra_memory_map( void )
 void rfsh_check_page( libspectrum_byte R7 )
 {
   dbg( "R7=%d", R7 & 0x80 );
+  debugger_event(( R7 & 0x80 ) ? page_event : unpage_event );
   machine_current->ram.last_byte2 = R7;
   machine_current->memory_map();
 }
