@@ -601,6 +601,9 @@ trap_check_rom( void )
   case LIBSPECTRUM_MACHINE_HC2000:
     return( machine_current->ram.current_rom == 0 );
 
+  case LIBSPECTRUM_MACHINE_COBRA:
+    return( ! machine_current->ram.special );
+
   case LIBSPECTRUM_MACHINE_UNKNOWN:	/* should never happen */
     ui_error( UI_ERROR_ERROR,
 	      "trap_check_rom: machine type is LIBSPECTRUM_MACHINE_UNKNOWN" );

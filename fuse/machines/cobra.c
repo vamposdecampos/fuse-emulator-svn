@@ -123,7 +123,8 @@ int
 cobra_memory_map( void )
 {
   dbg( "last_byte2=0x%02x", machine_current->ram.last_byte2 );
-  if( machine_current->ram.last_byte2 & 0x80 ) {
+  machine_current->ram.special = !!( machine_current->ram.last_byte2 & 0x80 );
+  if( machine_current->ram.special ) {
     memory_ram_set_16k_writable( 10, 1 );
     memory_map_16k( 0x0000, memory_map_rom, 0 );
     memory_map_16k( 0x4000, memory_map_rom, 1 );
