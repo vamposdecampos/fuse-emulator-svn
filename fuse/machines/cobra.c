@@ -128,12 +128,22 @@ memory_ram_set_16k_writable( int page_num, int writable )
 int
 cobra_memory_map( void )
 {
+  /* PO and LO6 signals on the circuit board */
+  int po = machine_current->ram.last_byte2 & 0x80;
+  int lo6 = machine_current->ram.last_byte2 & 0x40;
+
   dbg( "last_byte2=0x%02x", machine_current->ram.last_byte2 );
-  machine_current->ram.special = !!( machine_current->ram.last_byte2 & 0x80 );
+  machine_current->ram.special = po || lo6;
+
   if( machine_current->ram.special ) {
     memory_ram_set_16k_writable( 10, 1 );
-    memory_map_16k( 0x0000, memory_map_rom, 0 );
-    memory_map_16k( 0x4000, memory_map_rom, 1 );
+    if( po ) {
+      memory_map_16k( 0x0000, memory_map_rom, 0 );
+      memory_map_16k( 0x4000, memory_map_rom, 1 );
+    } else {
+      memory_map_16k( 0x0000, memory_map_ram, 2 );
+      memory_map_16k( 0x4000, memory_map_ram, 0 );
+    }
     memory_map_16k_subpage( 0x8000, memory_map_ram, 10, 0 );
     memory_map_16k_subpage( 0xa000, memory_map_ram, 5, 1 );
     memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
@@ -157,12 +167,16 @@ void cobra_ula_write( libspectrum_word port, libspectrum_byte b )
     (b & (1 << 6)) ? "O6 " : "   ",
     (b & (1 << 7)) ? "SO " : "   "
   );
+  machine_current->ram.last_byte = b;
 }
 
 void rfsh_check_page( libspectrum_byte R7 )
 {
   dbg( "R7=%d", R7 & 0x80 );
   debugger_event(( R7 & 0x80 ) ? page_event : unpage_event );
-  machine_current->ram.last_byte2 = R7;
+  machine_current->ram.last_byte2 = R7 & 0x80;
+  /* on the falling edge of R7, latch current value of port FE bit 6 */
+  if( !( R7 & 0x80 ))
+    machine_current->ram.last_byte2 |= machine_current->ram.last_byte & 0x40;
   machine_current->memory_map();
 }
