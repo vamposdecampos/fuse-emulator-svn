@@ -124,19 +124,19 @@ cobra_memory_map( void )
 {
   dbg( "last_byte2=0x%02x", machine_current->ram.last_byte2 );
   if( machine_current->ram.last_byte2 & 0x80 ) {
+    memory_ram_set_16k_writable( 10, 1 );
     memory_map_16k( 0x0000, memory_map_rom, 0 );
     memory_map_16k( 0x4000, memory_map_rom, 1 );
     memory_map_16k_subpage( 0x8000, memory_map_ram, 10, 0 );
     memory_map_16k_subpage( 0xa000, memory_map_ram, 5, 1 );
     memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
     memory_map_16k_subpage( 0xe000, memory_map_ram, 10, 1 );
-    memory_ram_set_16k_writable( 10, 1 );
   } else {
+    memory_ram_set_16k_writable( 10, 0 );
     memory_map_16k( 0x0000, memory_map_ram, 10 );
     memory_map_16k( 0x4000, memory_map_ram, 5 );
     memory_map_16k( 0x8000, memory_map_ram, 2 );
     memory_map_16k( 0xc000, memory_map_ram, 0 );
-    memory_ram_set_16k_writable( 10, 0 );
   }
   return 0;
 }
