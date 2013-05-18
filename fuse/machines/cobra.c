@@ -189,3 +189,30 @@ void rfsh_check_page( libspectrum_byte R7 )
     machine_current->ram.last_byte2 |= machine_current->ram.last_byte & 0x40;
   machine_current->memory_map();
 }
+
+
+
+libspectrum_byte cobra_fdc_read( libspectrum_word port, int *attached )
+{
+  dbg("fdc port 0x%02x read", port & 0xff);
+  return 0xff;
+}
+
+void cobra_fdc_write( libspectrum_word port, libspectrum_byte b )
+{
+  dbg( "fdc port 0x%02x <- 0x%02x", port & 0xff, b );
+}
+
+
+libspectrum_byte cobra_ctc_read( libspectrum_word port, int *attached )
+{
+  dbg("ctc port 0x%02x read", port & 0xff);
+  return 0xff;
+}
+
+
+void cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
+{
+  dbg( "ctc port 0x%02x <- 0x%02x", port & 0xff, b );
+}
+
