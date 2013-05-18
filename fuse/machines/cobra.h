@@ -38,6 +38,7 @@ void cobra_common_display_setup( void );
 int cobra_common_reset( void );
 int cobra_memory_map( void );
 
+libspectrum_byte cobra_ula_read( libspectrum_word port, int *attached );
 void cobra_ula_write( libspectrum_word port, libspectrum_byte b );
 void rfsh_check_page( libspectrum_byte R7 );
 

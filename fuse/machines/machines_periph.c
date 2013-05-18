@@ -165,7 +165,9 @@ static const periph_t hc2000_memory = {
 };
 
 static const periph_port_t cobra_memory_ports[] = {
-  { 0x0001, 0x0000, NULL, cobra_ula_write },
+  /* 8255 nCS = !(A0 ^ A5) */
+  { 0x0021, 0x0020, cobra_ula_read, cobra_ula_write },
+  { 0x0021, 0x0001, cobra_ula_read, cobra_ula_write },
   { 0, 0, NULL, NULL }
 };
 

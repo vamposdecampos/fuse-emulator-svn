@@ -158,15 +158,24 @@ cobra_memory_map( void )
   return 0;
 }
 
+libspectrum_byte cobra_ula_read( libspectrum_word port, int *attached )
+{
+  if( port & 0xff  != 0xfe )
+    dbg("port 0x%02x read", port & 0xff);
+  return 0xff;
+}
+
 void cobra_ula_write( libspectrum_word port, libspectrum_byte b )
 {
-  dbg( "0x%02x %s%s%s%s%s", b,
-    (b & (1 << 3)) ? "TO " : "   ",
-    (b & (1 << 4)) ? "LS " : "   ",
-    (b & (1 << 5)) ? "O5 " : "   ",
-    (b & (1 << 6)) ? "O6 " : "   ",
-    (b & (1 << 7)) ? "SO " : "   "
-  );
+  dbg( "port 0x%02x <- 0x%02x", port & 0xff, b );
+  if( port & 0xff == 0xfe )
+    dbg( "%s%s%s%s%s", port & 0xff, b,
+      (b & (1 << 3)) ? "TO " : "   ",
+      (b & (1 << 4)) ? "LS " : "   ",
+      (b & (1 << 5)) ? "O5 " : "   ",
+      (b & (1 << 6)) ? "O6 " : "   ",
+      (b & (1 << 7)) ? "SO " : "   "
+    );
   machine_current->ram.last_byte = b;
 }
 
