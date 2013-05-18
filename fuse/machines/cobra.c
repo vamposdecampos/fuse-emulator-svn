@@ -160,7 +160,7 @@ cobra_memory_map( void )
 
 libspectrum_byte cobra_ula_read( libspectrum_word port, int *attached )
 {
-  if( port & 0xff  != 0xfe )
+  if(( port & 0xff ) != 0xfe )
     dbg("port 0x%02x read", port & 0xff);
   return 0xff;
 }
@@ -168,8 +168,8 @@ libspectrum_byte cobra_ula_read( libspectrum_word port, int *attached )
 void cobra_ula_write( libspectrum_word port, libspectrum_byte b )
 {
   dbg( "port 0x%02x <- 0x%02x", port & 0xff, b );
-  if( port & 0xff == 0xfe )
-    dbg( "%s%s%s%s%s", port & 0xff, b,
+  if(( port & 0xff ) == 0xfe )
+    dbg( "%s%s%s%s%s",
       (b & (1 << 3)) ? "TO " : "   ",
       (b & (1 << 4)) ? "LS " : "   ",
       (b & (1 << 5)) ? "O5 " : "   ",
