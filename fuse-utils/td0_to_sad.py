@@ -25,7 +25,7 @@ class Teledisk(object):
 		if n_sec == 0xff:
 			return False
 		for sec in xrange(n_sec):
-			self.data[(head, cyl, sec)] = self.parse_sector()
+			self.parse_sector()
 		return True
 	def parse_sector(self):
 		cyl, head, sec, sec_len, flags, crc = self.read("BBBBBB")
@@ -53,7 +53,7 @@ class Teledisk(object):
 					data += self.read("%ds" % length)[0] * repeat
 		else:
 			assert encoding in (0, 1, 2)
-		return data
+		self.data[(head, cyl, sec - 1)] = data
 
 	def dump(self, fp):
 		seclen = min((len(x) for x in self.data.values()))
