@@ -1115,7 +1115,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
       if( f->data_offset == f->rlen || f->tc ) {	/* read only rlen byte from host */
         d->fdd.data = 0x00;
         while( f->data_offset < f->sector_length ) {	/* fill with 0x00 */
-	  fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
+	  fdd_read_write_data( &d->fdd, FDD_WRITE ); crc_add( f, d );
 	  f->data_offset++;
         }
       }
