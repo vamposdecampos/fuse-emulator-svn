@@ -27,6 +27,8 @@
 #ifndef FUSE_COBRA_FDC_H
 #define FUSE_COBRA_FDC_H
 
+int cobra_fdc_available;
+
 void cobra_fdc_init(void);
 
 #endif				/* #ifndef FUSE_COBRA_FDC_H */

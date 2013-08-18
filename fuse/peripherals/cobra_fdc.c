@@ -52,6 +52,7 @@ struct cobra_ctc {
 static upd_fdc *cobra_fdc;
 static upd_fdc_drive cobra_drives[COBRA_NUM_DRIVES];
 static struct cobra_ctc cobra_ctc[4];
+int cobra_fdc_available;
 
 /*
  * Z80-CTC
@@ -160,12 +161,14 @@ void
 cobra_fdc_reset( int hard )
 {
   dbg( "called hard=%d", hard );
+  cobra_fdc_available = 0;
   if( !periph_is_active( PERIPH_TYPE_COBRA_FDC ) )
     return;
 
   memset(cobra_ctc, 0, sizeof(cobra_ctc));
   upd_fdc_master_reset( cobra_fdc );
 
+  cobra_fdc_available = 1;
   dbg( "active" );
 }
 
