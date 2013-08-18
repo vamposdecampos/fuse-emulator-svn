@@ -27,6 +27,8 @@
 
 #include "module.h"
 #include "periph.h"
+#include "peripherals/disk/fdd.h"
+#include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
 
 #if 1
@@ -35,10 +37,25 @@
 #define dbg(x...)
 #endif
 
+#define COBRA_NUM_DRIVES 4
+
+static upd_fdc *cobra_fdc;
+static upd_fdc_drive cobra_drives[COBRA_NUM_DRIVES];
+
 void
 cobra_fdc_reset( int hard )
 {
   dbg( "called" );
+}
+
+void
+cobra_fdc_set_intrq( upd_fdc *f )
+{
+}
+
+void
+cobra_fdc_reset_intrq( upd_fdc *f )
+{
 }
 
 void
@@ -65,6 +82,23 @@ static module_info_t cobra_fdc_module = {
 void
 cobra_fdc_init( void )
 {
+  cobra_fdc = upd_fdc_alloc_fdc( UPD765A, UPD_CLOCK_8MHZ );
+  cobra_fdc->drive[0] = &cobra_drives[0];
+  cobra_fdc->drive[1] = &cobra_drives[1];
+  cobra_fdc->drive[2] = &cobra_drives[2];
+  cobra_fdc->drive[3] = &cobra_drives[3];
+  cobra_fdc->set_intrq = cobra_fdc_set_intrq;
+  cobra_fdc->reset_intrq = cobra_fdc_reset_intrq;
+  cobra_fdc->set_datarq = NULL;
+  cobra_fdc->reset_datarq = NULL;
+
+  fdd_init( &cobra_drives[0].fdd, FDD_SHUGART, &fdd_params[4], 0 );
+  fdd_init( &cobra_drives[1].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
+  fdd_init( &cobra_drives[2].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
+  fdd_init( &cobra_drives[3].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
+
+  upd_fdc_master_reset( cobra_fdc );
+
   module_register( &cobra_fdc_module );
   periph_register( PERIPH_TYPE_COBRA_FDC, &cobra_fdc_periph );
 }
