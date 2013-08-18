@@ -28,6 +28,7 @@
 
 #include "module.h"
 #include "periph.h"
+#include "peripherals/cobra_fdc.h"
 #include "peripherals/disk/fdd.h"
 #include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
@@ -170,6 +171,11 @@ cobra_fdc_reset( int hard )
 
   cobra_fdc_available = 1;
   dbg( "active" );
+}
+
+fdd_t *cobra_get_fdd(cobra_drive_number which)
+{
+  return &cobra_drives[which].fdd;
 }
 
 void

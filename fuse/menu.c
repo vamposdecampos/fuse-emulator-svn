@@ -32,8 +32,10 @@
 #include "menu.h"
 #include "movie.h"
 #include "machines/specplus3.h"
+#include "peripherals/cobra_fdc.h"
 #include "peripherals/dck.h"
 #include "peripherals/disk/beta.h"
+#include "peripherals/cobra_fdc.h"
 #include "peripherals/disk/disciple.h"
 #include "peripherals/disk/opus.h"
 #include "peripherals/disk/plusd.h"
@@ -1041,3 +1043,36 @@ menu_disciple2_detail( void )
 
   return menu_disk_detail( f );
 }
+
+const char*
+menu_cobra_a_detail( void )
+{
+  fdd_t *f = cobra_get_fdd( COBRA_DRIVE_A );
+
+  return menu_disk_detail( f );
+}
+
+const char*
+menu_cobra_b_detail( void )
+{
+  fdd_t *f = cobra_get_fdd( COBRA_DRIVE_B );
+
+  return menu_disk_detail( f );
+}
+
+const char*
+menu_cobra_c_detail( void )
+{
+  fdd_t *f = cobra_get_fdd( COBRA_DRIVE_C );
+
+  return menu_disk_detail( f );
+}
+
+const char*
+menu_cobra_d_detail( void )
+{
+  fdd_t *f = cobra_get_fdd( COBRA_DRIVE_D );
+
+  return menu_disk_detail( f );
+}
+

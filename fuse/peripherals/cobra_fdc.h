@@ -27,8 +27,19 @@
 #ifndef FUSE_COBRA_FDC_H
 #define FUSE_COBRA_FDC_H
 
+#include "peripherals/disk/fdd.h"
+
+typedef enum cobra_drive_number {
+	COBRA_DRIVE_A = 0,
+	COBRA_DRIVE_B,
+	COBRA_DRIVE_C,
+	COBRA_DRIVE_D,
+} cobra_drive_number;
+
+
 int cobra_fdc_available;
 
 void cobra_fdc_init(void);
+fdd_t *cobra_get_fdd(cobra_drive_number which);
 
 #endif				/* #ifndef FUSE_COBRA_FDC_H */
