@@ -46,6 +46,11 @@ void
 cobra_fdc_reset( int hard )
 {
   dbg( "called" );
+  if( !periph_is_active( PERIPH_TYPE_COBRA_FDC ) )
+    return;
+
+  upd_fdc_master_reset( cobra_fdc );
+  dbg( "active" );
 }
 
 void
@@ -64,7 +69,45 @@ cobra_fdc_activate( void )
   dbg( "called" );
 }
 
+libspectrum_byte
+cobra_fdc_status( libspectrum_word port, int *attached )
+{
+  libspectrum_byte ret;
+  static libspectrum_byte last = 0;
+
+  *attached = 1;
+  ret = upd_fdc_read_status( cobra_fdc );
+  if( last != ret ) {
+    dbg( "port 0x%02x --> 0x%02x", port & 0xff, ret );
+    last = ret;
+  }
+  return ret;
+}
+
+libspectrum_byte
+cobra_fdc_read( libspectrum_word port, int *attached )
+{
+  libspectrum_byte ret;
+
+  *attached = 1;
+  ret = upd_fdc_read_data( cobra_fdc );
+  dbg( "port 0x%02x --> 0x%02x", port & 0xff, ret );
+  return ret;
+}
+
+void
+cobra_fdc_write( libspectrum_word port, libspectrum_byte b )
+{
+  dbg( "port 0x%02x <-- 0x%02x", port & 0xff, b );
+  upd_fdc_write_data( cobra_fdc, b );
+}
+
+
+
 static periph_port_t cobra_fdc_ports[] = {
+  /* CPU A1 -> 8272 nCS;  CPU A3 -> 8272 A0 */
+  { 0x000a, 0x0000, cobra_fdc_status, NULL },
+  { 0x000a, 0x0008, cobra_fdc_read, cobra_fdc_write },
   { 0, 0, NULL, NULL }
 };
 
@@ -96,8 +139,6 @@ cobra_fdc_init( void )
   fdd_init( &cobra_drives[1].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
   fdd_init( &cobra_drives[2].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
   fdd_init( &cobra_drives[3].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
-
-  upd_fdc_master_reset( cobra_fdc );
 
   module_register( &cobra_fdc_module );
   periph_register( PERIPH_TYPE_COBRA_FDC, &cobra_fdc_periph );
