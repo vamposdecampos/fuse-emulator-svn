@@ -1401,6 +1401,10 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
 
 void upd_fdc_tc( upd_fdc *f, int tc )
 {
-  if (tc > 0)
+  if (tc > 0) {
+    if( !f->tc ) {
+     f->data_register[3]++;
+    }
     f->tc = 1;
+  }
 }
