@@ -109,6 +109,7 @@ typedef struct upd_fdc {
   fdd_dir_t direction;		/* 0 = spindlewards, 1 = rimwards */
   upd_intrq_t intrq;		/* last INTRQ status */
   int datarq;			/* DRQ line status */
+  int last_intrq_out;
 
   enum upd_fdc_state {
     UPD_FDC_STATE_CMD = 0,

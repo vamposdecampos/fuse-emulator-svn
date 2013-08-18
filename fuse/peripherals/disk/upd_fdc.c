@@ -109,6 +109,36 @@ upd_fdc_init_events( void )
 }
 
 static void
+upd_fdc_intrq( upd_fdc *f, int enable )
+{
+  /* TODO: handle DMA mode */
+  if ( enable == f->last_intrq_out )
+    return;
+  f->last_intrq_out = enable;
+  if ( enable ) {
+    if ( f->set_intrq )
+      f->set_intrq( f );
+  } else {
+    if ( f->reset_intrq )
+      f->reset_intrq( f );
+  }
+}
+
+
+static void
+upd_fdc_update_intrq( upd_fdc *f )
+{
+  /* TODO: only if not in DMA mode? */
+  int datareq = ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
+                ( f->main_status & UPD_FDC_MAIN_DATAREQ );
+  if( datareq )
+    upd_fdc_intrq( f, 1 );
+  else if( f->intrq >= UPD_INTRQ_READY )
+    upd_fdc_intrq( f, 1 );
+}
+
+
+static void
 cmd_identify( upd_fdc *f )
 {
   upd_cmd_t *r = cmd;
@@ -151,6 +181,7 @@ upd_fdc_master_reset( upd_fdc *f )
   f->last_sector_read = 0;
   f->read_id = 0;
   f->tc = 0;
+  f->last_intrq_out = 0;
   /* preserve disabled state of speedlock_hack */
   if( f->speedlock != -1 ) f->speedlock = 0;
 }
@@ -407,11 +438,13 @@ cmd_result( upd_fdc *f )
     f->state = UPD_FDC_STATE_RES;
     f->intrq = UPD_INTRQ_RESULT;
     f->main_status |= UPD_FDC_MAIN_DATA_READ;
+    upd_fdc_intrq( f, 1 );
   } else {			/* NO result state */
     f->state = UPD_FDC_STATE_CMD;
     f->main_status &= ~UPD_FDC_MAIN_DATADIR;
     f->main_status &= ~UPD_FDC_MAIN_BUSY;
   }
+  upd_fdc_update_intrq( f );
   event_remove_type( timeout_event );		/* remove timeouts... */
   if( f->head_load && f->cmd->id <= UPD_CMD_READ_ID ) {
     event_add_with_data( tstates + f->hut_time * 
@@ -500,6 +533,8 @@ seek_step( upd_fdc *f, int start )
     event_add_with_data( tstates + f->stp_rate * 
                          machine_current->timings.processor_speed / 1000,
                          fdc_event, f );
+  } else {
+    upd_fdc_update_intrq( f );
   }
 
   return;
@@ -540,6 +575,7 @@ start_read_id( upd_fdc *f )
     f->status_register[0] |= UPD_FDC_ST0_INT_ABNORM;
   }
   f->intrq = UPD_INTRQ_RESULT;
+  upd_fdc_update_intrq( f );
   cmd_result( f );			/* set up result phase */
 }
 
@@ -601,6 +637,7 @@ abort_read_diag:
     f->cycle = f->cmd->res_length;
     f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
     f->intrq = UPD_INTRQ_RESULT;
+    upd_fdc_update_intrq( f );
     cmd_result( f );
 }
 
@@ -690,6 +727,7 @@ abort_read_data:
     
     f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
     f->intrq = UPD_INTRQ_RESULT;
+    upd_fdc_update_intrq( f );
     cmd_result( f );
     return;
   }
@@ -789,6 +827,7 @@ abort_write_data:
     }
     f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
     f->intrq = UPD_INTRQ_RESULT;
+    upd_fdc_update_intrq( f );
     cmd_result( f );
     return;
   }
@@ -919,6 +958,7 @@ upd_fdc_event( libspectrum_dword last_tstates GCC_UNUSED, int event,
     start_write_id( f );
   }
 
+  upd_fdc_update_intrq( f );
   return;
 }
 
@@ -928,8 +968,8 @@ upd_fdc_read_status( upd_fdc *f )
   return f->main_status;
 }
 
-libspectrum_byte
-upd_fdc_read_data( upd_fdc *f )
+static libspectrum_byte
+upd_fdc_read_data_internal( upd_fdc *f )
 {
   libspectrum_byte r;
 
@@ -1020,18 +1060,18 @@ upd_fdc_read_data( upd_fdc *f )
     f->main_status &= ~UPD_FDC_MAIN_BUSY;
     if( f->intrq < UPD_INTRQ_READY )
       f->intrq = UPD_INTRQ_NONE;
+    upd_fdc_update_intrq( f );
   }
   return r;
 }
 
-void
-upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
+static void
+upd_fdc_write_data_internal( upd_fdc *f, libspectrum_byte data )
 {
   int i, terminated = 0;
   unsigned int u;
   upd_fdc_drive *d;
 
-  
   if( !( f->main_status & UPD_FDC_MAIN_DATAREQ ) || 
       ( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
     return;
@@ -1113,6 +1153,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
         f->cycle = f->cmd->res_length;
         f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
     	f->intrq = UPD_INTRQ_RESULT;
+        upd_fdc_update_intrq( f );
         cmd_result( f );
 	return;
       }
@@ -1235,6 +1276,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
         f->sk = ( f->data_register[0] & 0x20 ) >> 5;		/* SKIP deleted/non-deleted */
       }
     }
+
     /* ... During the Command Phase of the SEEK operation the FDC in the
        FDC BUSY state, but during the Execution Phase it is in the NON BUSY
        state. While the FDC is in the NON BUSY state, another Seek Command
@@ -1252,6 +1294,10 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
 	f->cmd->id == UPD_CMD_SEEK ||
 	f->cmd->id == UPD_CMD_SPECIFY ) {
       f->main_status &= ~UPD_FDC_MAIN_BUSY;		/* no result phase */
+    }
+
+    if( f->main_status & UPD_FDC_MAIN_BUSY ) {
+      upd_fdc_intrq( f, 1 );
     }
 
     if( f->cmd->id < UPD_CMD_SENSE_INT ) {
@@ -1311,6 +1357,7 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
       if( f->seek[0] < 4 && f->seek[1] < 4 && 
           f->seek[2] < 4 && f->seek[3] < 4 )
         f->intrq = UPD_INTRQ_NONE;				/* delete INTRQ state */
+      upd_fdc_update_intrq( f );
       break;
     case UPD_CMD_RECALIBRATE:
       if( f->main_status & ( 1 << f->us ) ) break;   	/* previous seek in progress? */
@@ -1410,6 +1457,25 @@ upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
   } else {
     f->cycle++;
   }
+}
+
+libspectrum_byte
+upd_fdc_read_data( upd_fdc *f )
+{
+  libspectrum_byte r;
+
+  upd_fdc_intrq( f, 0 );
+  r = upd_fdc_read_data_internal( f );
+  upd_fdc_update_intrq( f );
+  return r;
+}
+
+void
+upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
+{
+  upd_fdc_intrq( f, 0 );
+  upd_fdc_write_data_internal( f, data );
+  upd_fdc_update_intrq( f );
 }
 
 void upd_fdc_tc( upd_fdc *f, int tc )
