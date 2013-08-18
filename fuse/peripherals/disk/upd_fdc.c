@@ -655,10 +655,13 @@ multi_track_next:
       }
     }
   } else {
-    if( f->mt ) {
-      f->data_register[1]++;		/* next track */
+    if( f->mt && f->data_register[3] > f->data_register[5] ) {
+      if( f->data_register[2] )
+        f->data_register[1]++;		/* next track */
       f->data_register[3] = 1;		/* first sector */
-      goto multi_track_next;
+      f->data_register[2] ^= 1;		/* complement LSB */
+      if( !f->tc )
+        goto multi_track_next;
     }
 abort_read_data:
     f->state = UPD_FDC_STATE_RES;	/* end of execution phase */
@@ -675,10 +678,14 @@ abort_read_data:
       f->status_register[1] |= UPD_FDC_ST1_EOF_CYLINDER;
     }
     
-    if( !( f->status_register[0] & 
+    if( f->data_register[3] > f->data_register[5] &&
+        !( f->status_register[0] & 
 	    ( UPD_FDC_ST0_INT_ABNORM | UPD_FDC_ST0_INT_READY ) ) ) {
-      f->data_register[1]++;		/* next track */
+      if( f->data_register[2] || !f->mt )
+        f->data_register[1]++;		/* next track */
       f->data_register[3] = 1;		/* first sector */
+      if( f->mt )
+        f->data_register[2] ^= 1;	/* complement LSB */
     }
     
     f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
@@ -756,9 +763,14 @@ multi_track_next:
     			( f->mf ? 0x0000 : 0xff00 );	/* write data mark */
     fdd_read_write_data( &d->fdd, FDD_WRITE ); crc_add( f, d );
   } else {
-    f->data_register[1]++;		/* next track */
-    f->data_register[3] = 1;		/* first sector */
-    if( f->mt ) {
+    if( f->data_register[3] > f->data_register[5] ) {
+      if( f->data_register[2] )
+        f->data_register[1]++;		/* next track */
+      f->data_register[3] = 1;		/* first sector */
+      if( f->mt )
+        f->data_register[2] ^= 1;		/* complement LSB */
+    }
+    if( f->mt && !f->tc ) {
       goto multi_track_next;
     }
 abort_write_data:
