@@ -169,10 +169,10 @@ static const periph_port_t cobra_memory_ports[] = {
   { 0x0021, 0x0020, cobra_ula_read, cobra_ula_write },
   { 0x0021, 0x0001, cobra_ula_read, cobra_ula_write },
   /* 8272 nCS = A1;  8272 A0 = A3 */
-  { 0x000a, 0x0000, cobra_fdc_status, NULL },
-  { 0x000a, 0x0008, cobra_fdc_read, cobra_fdc_write },
+  { 0x000a, 0x0000, cobra_mach_fdc_status, NULL },
+  { 0x000a, 0x0008, cobra_mach_fdc_read, cobra_mach_fdc_write },
   /* Z80-CTC nCE = A2 */
-  { 0x0004, 0x0000, cobra_ctc_read, cobra_ctc_write },
+  { 0x0004, 0x0000, cobra_mach_ctc_read, cobra_mach_ctc_write },
   { 0, 0, NULL, NULL }
 };
 
@@ -225,6 +225,7 @@ base_peripherals_48_128( void )
   periph_set_present( PERIPH_TYPE_OPUS, PERIPH_PRESENT_OPTIONAL );
   periph_set_present( PERIPH_TYPE_PLUSD, PERIPH_PRESENT_OPTIONAL );
   periph_set_present( PERIPH_TYPE_SPECDRUM, PERIPH_PRESENT_OPTIONAL );
+  periph_set_present( PERIPH_TYPE_COBRA_FDC, PERIPH_PRESENT_OPTIONAL );
 }
 
 /* The set of peripherals available on the 48K and similar machines */

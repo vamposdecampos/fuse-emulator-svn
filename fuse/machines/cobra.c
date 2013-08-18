@@ -261,7 +261,7 @@ static int cobra_fdc_init()
   return 0;
 }
 
-libspectrum_byte cobra_fdc_status( libspectrum_word port, int *attached )
+libspectrum_byte cobra_mach_fdc_status( libspectrum_word port, int *attached )
 {
   libspectrum_byte ret;
   static libspectrum_byte last = 0;
@@ -275,7 +275,7 @@ libspectrum_byte cobra_fdc_status( libspectrum_word port, int *attached )
   return ret;
 }
 
-libspectrum_byte cobra_fdc_read( libspectrum_word port, int *attached )
+libspectrum_byte cobra_mach_fdc_read( libspectrum_word port, int *attached )
 {
   libspectrum_byte ret;
 
@@ -285,7 +285,7 @@ libspectrum_byte cobra_fdc_read( libspectrum_word port, int *attached )
   return ret;
 }
 
-void cobra_fdc_write( libspectrum_word port, libspectrum_byte b )
+void cobra_mach_fdc_write( libspectrum_word port, libspectrum_byte b )
 {
   dbg( "port 0x%02x <-- 0x%02x", port & 0xff, b );
   upd_fdc_write_data( cobra_fdc, b );
@@ -303,7 +303,7 @@ void cobra_fdc_write( libspectrum_word port, libspectrum_byte b )
  * => channels <2(MSB), 1, 0(LSB)> count i8272 data bytes
  */
 
-libspectrum_byte cobra_ctc_read( libspectrum_word port, int *attached )
+libspectrum_byte cobra_mach_ctc_read( libspectrum_word port, int *attached )
 {
   int channel = (port >> 3) & 3;
   struct cobra_ctc *ctc = &cobra_ctc[channel];
@@ -324,7 +324,7 @@ libspectrum_byte cobra_ctc_read( libspectrum_word port, int *attached )
 #define Z80_CTC_CONTROL_CONTROL		0x01	/* control word; vector if clear */
 
 
-void cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
+void cobra_mach_ctc_write( libspectrum_word port, libspectrum_byte b )
 {
   int channel = (port >> 3) & 3;
   struct cobra_ctc *ctc = &cobra_ctc[channel];
@@ -395,4 +395,3 @@ static void cobra_fdc_reset_intrq( upd_fdc *f )
 {
   ctc_trigger( &cobra_ctc[0], 0 );
 }
-
