@@ -26,6 +26,8 @@
 #include <config.h>
 
 #include "module.h"
+#include "periph.h"
+#include "settings.h"
 
 #if 0
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
@@ -39,6 +41,23 @@ cobra_fdc_reset( int hard )
   dbg( "called" );
 }
 
+void
+cobra_fdc_activate( void )
+{
+  dbg( "called" );
+}
+
+static periph_port_t cobra_fdc_ports[] = {
+  { 0, 0, NULL, NULL }
+};
+
+static periph_t cobra_fdc_periph = {
+  .option = &settings_current.cobra_fdc,
+  .ports = cobra_fdc_ports,
+  .activate = cobra_fdc_activate,
+};
+
+
 static module_info_t cobra_fdc_module = {
   .reset = cobra_fdc_reset,
 };
@@ -47,4 +66,5 @@ void
 cobra_fdc_init( void )
 {
   module_register( &cobra_fdc_module );
+  periph_register( PERIPH_TYPE_COBRA_FDC, &cobra_fdc_periph );
 }

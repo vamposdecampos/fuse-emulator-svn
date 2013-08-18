@@ -75,6 +75,7 @@ typedef enum periph_type {
   PERIPH_TYPE_ZXPRINTER_FULL_DECODE, /* ZX Printer responding only to 0xfb */
   PERIPH_TYPE_HC2000_MEMORY,  /* HC2000-style memory paging */
   PERIPH_TYPE_COBRA_MEMORY,   /* CoBra memory paging */
+  PERIPH_TYPE_COBRA_FDC,      /* CoBra floppy disk controller board */
 } periph_type;
 
 /*
