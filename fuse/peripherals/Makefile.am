@@ -37,6 +37,7 @@ AM_CPPFLAGS += @LIBSPEC_CFLAGS@ @GLIB_CFLAGS@ @GTK_CFLAGS@
 
 libperipherals_a_SOURCES = \
   ay.c \
+  cobra_fdc.c \
   dck.c \
   fuller.c \
   if1.c \
@@ -54,6 +55,7 @@ libperipherals_a_SOURCES = \
 
 noinst_HEADERS = \
   ay.h \
+  cobra_fdc.h \
   dck.h \
   fuller.h \
   if1.h \

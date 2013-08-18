@@ -63,6 +63,7 @@
 #include "movie.h"
 #include "mempool.h"
 #include "peripherals/ay.h"
+#include "peripherals/cobra_fdc.h"
 #include "peripherals/dck.h"
 #include "peripherals/disk/beta.h"
 #include "peripherals/disk/fdd.h"
@@ -302,6 +303,7 @@ static int fuse_init(int argc, char **argv)
   speccyboot_init();
   specdrum_init();
   spectranet_init();
+  cobra_fdc_init();
   machines_periph_init();
 
   z80_init();
