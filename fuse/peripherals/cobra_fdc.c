@@ -29,7 +29,7 @@
 #include "periph.h"
 #include "settings.h"
 
-#if 0
+#if 1
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
 #else
 #define dbg(x...)

@@ -46,6 +46,7 @@ libspectrum_byte cobra_ctc_read( libspectrum_word port, int *attached );
 void cobra_ctc_write( libspectrum_word port, libspectrum_byte b );
 
 libspectrum_byte cobra_fdc_read( libspectrum_word port, int *attached );
+libspectrum_byte cobra_fdc_status( libspectrum_word port, int *attached );
 void cobra_fdc_write( libspectrum_word port, libspectrum_byte b );
 
 #endif			/* #ifndef FUSE_COBRA_H */

@@ -7,9 +7,12 @@ class Teledisk(object):
 	def __init__(self, buf):
 		self.buf = buf
 		self.data = {}
+		self.idx = 0
 	def read(self, fmt):
 		fmt = "<" + fmt # ?
 		size = struct.calcsize(fmt)
+		print "read @%d len %d" % (self.idx, size)
+		self.idx += size
 		data, self.buf = self.buf[:size], self.buf[size:]
 		return struct.unpack(fmt, data)
 	def parse(self):
@@ -22,6 +25,7 @@ class Teledisk(object):
 			pass
 	def parse_track(self):
 		n_sec, cyl, head, crc = self.read("BBBB")
+		print "track", cyl, head
 		if n_sec == 0xff:
 			return False
 		for sec in xrange(n_sec):
@@ -29,10 +33,12 @@ class Teledisk(object):
 		return True
 	def parse_sector(self):
 		cyl, head, sec, sec_len, flags, crc = self.read("BBBBBB")
+		print "sector", cyl, head, sec, sec_len
 		if flags & 0x30:
 			return
 		sec_len = 0x80 << sec_len
 		block_len, encoding = self.read("HB")
+		print "block len %d encoding %d" % (block_len, encoding)
 		if encoding == 0:
 			data = self.read("%ds" % sec_len)[0]
 		elif encoding == 1:
@@ -44,13 +50,17 @@ class Teledisk(object):
 			data = ""
 			while len(data) < sec_len:
 				cnt, = self.read("B")
+				print "RLE dlen %d cnt %d" % (len(data), cnt)
 				if cnt == 0:
 					length, = self.read("B")
+					print "length %d" % length
 					data += self.read("%ds" % length)[0]
 				else:
 					length = cnt * 2
 					repeat, = self.read("B")
+					print "repeat %d" % repeat
 					data += self.read("%ds" % length)[0] * repeat
+			print "done RLE"
 		else:
 			assert encoding in (0, 1, 2)
 		self.data[(head, cyl, sec - 1)] = data

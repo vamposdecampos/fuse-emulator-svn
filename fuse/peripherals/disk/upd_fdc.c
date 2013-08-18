@@ -115,6 +115,7 @@ upd_fdc_intrq( upd_fdc *f, int enable )
   if ( enable == f->last_intrq_out )
     return;
   f->last_intrq_out = enable;
+fprintf(stderr, "%s: %d\n", __func__, enable);
   if ( enable ) {
     if ( f->set_intrq )
       f->set_intrq( f );
@@ -135,6 +136,7 @@ upd_fdc_update_intrq( upd_fdc *f )
     upd_fdc_intrq( f, 1 );
   else if( f->intrq >= UPD_INTRQ_READY )
     upd_fdc_intrq( f, 1 );
+//  upd_fdc_update_intrq_data( f, datareq );
 }
 
 
@@ -153,6 +155,7 @@ cmd_identify( upd_fdc *f )
   f->mf = ( f->command_register >> 6 ) & 0x01;	/* MFM format */
   f->sk = ( f->command_register >> 5 ) & 0x01;	/* Skip DELETED/NONDELETED sectors */
   f->cmd = r;
+fprintf(stderr, "%s: cmd %d\n", __func__, r->value);
 
   return;
 }
@@ -181,6 +184,7 @@ upd_fdc_master_reset( upd_fdc *f )
   f->last_sector_read = 0;
   f->read_id = 0;
   f->tc = 0;
+  f->datarq = 0;
   f->last_intrq_out = 0;
   /* preserve disabled state of speedlock_hack */
   if( f->speedlock != -1 ) f->speedlock = 0;
@@ -217,6 +221,7 @@ read_id( upd_fdc *f )
   i = f->rev;
   while( i == f->rev && d->fdd.ready ) {
     fdd_read_write_data( &d->fdd, FDD_READ ); if( d->fdd.index ) f->rev--;
+//fprintf(stderr, "fdd data: 0x%04x\n", d->fdd.data);
     crc_preset( f );
     if( f->mf ) {	/* double density (MFM) */
       if( d->fdd.data == 0xffa1 ) {
@@ -387,6 +392,18 @@ seek_id( upd_fdc *f )
   f->status_register[2] &= ~( UPD_FDC_ST2_WRONG_CYLINDER |
 			      UPD_FDC_ST2_BAD_CYLINDER );
   r = read_id( f );
+fprintf(stderr, "%s: read_id res %d: %d/%d/%d/%d expected %d/%d/%d/%d\n",
+	__func__, r,
+	f->id_track,
+	f->id_head,
+	f->id_sector,
+	f->id_length,
+	f->data_register[1],
+	f->data_register[2],
+	f->data_register[3],
+	f->data_register[4]);
+fflush(stderr);
+
   if( r != 0 ) return r;		/* not found any good id */
 
   if( f->id_track != f->data_register[1] ) {
@@ -417,6 +434,7 @@ upd_fdc_alloc_fdc( upd_type_t type, upd_clock_t clock )
   
   upd_fdc *f = malloc( sizeof( *f ) );
   if( !f ) return NULL;
+//  memset( f, 0, sizeof( *f ) );   // TODO: #include a header for it
 
   f->type = type != UPD765B ? UPD765A : UPD765B;
   f->clock = clock != UPD_CLOCK_4MHZ ? UPD_CLOCK_8MHZ : UPD_CLOCK_4MHZ;
@@ -424,6 +442,7 @@ upd_fdc_alloc_fdc( upd_type_t type, upd_clock_t clock )
     f->drive[i] = NULL;
   f->current_drive = NULL;
   f->speedlock = 0;
+  f->last_intrq_out = 0;
   upd_fdc_master_reset( f );
   return f;
 }
@@ -431,6 +450,7 @@ upd_fdc_alloc_fdc( upd_type_t type, upd_clock_t clock )
 static void
 cmd_result( upd_fdc *f )
 {
+  //upd_fdc_intrq( f, 0 ); // XXX HACK
   f->cycle = f->cmd->res_length;
   f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
   f->main_status |= UPD_FDC_MAIN_DATAREQ;
@@ -438,7 +458,7 @@ cmd_result( upd_fdc *f )
     f->state = UPD_FDC_STATE_RES;
     f->intrq = UPD_INTRQ_RESULT;
     f->main_status |= UPD_FDC_MAIN_DATA_READ;
-    upd_fdc_intrq( f, 1 );
+    upd_fdc_intrq( f, 1 ); // XXX HACK
   } else {			/* NO result state */
     f->state = UPD_FDC_STATE_CMD;
     f->main_status &= ~UPD_FDC_MAIN_DATADIR;
@@ -692,6 +712,7 @@ multi_track_next:
       }
     }
   } else {
+fprintf(stderr, "%s:%d\n", __func__, __LINE__);
     if( f->mt && f->data_register[3] > f->data_register[5] ) {
       if( f->data_register[2] )
         f->data_register[1]++;		/* next track */
@@ -723,6 +744,7 @@ abort_read_data:
       f->data_register[3] = 1;		/* first sector */
       if( f->mt )
         f->data_register[2] ^= 1;	/* complement LSB */
+fprintf(stderr, "%s:%d\n", __func__, __LINE__);
     }
     
     f->main_status &= ~UPD_FDC_MAIN_EXECUTION;
@@ -996,6 +1018,8 @@ upd_fdc_read_data_internal( upd_fdc *f )
     /* EOSpeedlock hack */
 
     r = d->fdd.data & 0xff;
+fprintf(stderr, "r 0x%02x rlen %d data_offset %d tc %d\n",
+	r, f->rlen, f->data_offset, f->tc);
     if( f->data_offset == f->rlen || f->tc ) {	/* send only rlen byte to host */
       while( f->data_offset < f->sector_length ) {
 	fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
@@ -1004,6 +1028,7 @@ upd_fdc_read_data_internal( upd_fdc *f )
     }
     if( ( f->cmd->id == UPD_CMD_READ_DIAG || f->cmd->id == UPD_CMD_READ_DATA )
         && f->data_offset == f->sector_length ) {       /* read the CRC */
+fprintf(stderr, "done one sector\n");
       fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
       fdd_read_write_data( &d->fdd, FDD_READ ); crc_add( f, d );
       if( f->crc != 0x000 ) {
@@ -1025,6 +1050,9 @@ upd_fdc_read_data_internal( upd_fdc *f )
 	}
 	f->rev = 2;
         f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
+fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+        //f->data_register[3]--; //XXX
+	//f->data_register[5]++;
         start_readwrite_data_later( f );
       } else {				/* READ DIAG */
 	f->data_register[3]++;		/*FIXME ??? */
@@ -1252,6 +1280,7 @@ upd_fdc_write_data_internal( upd_fdc *f, libspectrum_byte data )
     f->main_status &= ~UPD_FDC_MAIN_DATAREQ;
     if( f->non_dma ) {				/* btw: only NON-DMA mode emulated */
       f->main_status |= UPD_FDC_MAIN_EXECUTION;
+//      upd_fdc_intrq( f, 1 ); // XXX HACK
     }
 
     /* select current drive and head if needed */    
@@ -1297,7 +1326,8 @@ upd_fdc_write_data_internal( upd_fdc *f, libspectrum_byte data )
     }
 
     if( f->main_status & UPD_FDC_MAIN_BUSY ) {
-      upd_fdc_intrq( f, 1 );
+fprintf(stderr, "exec intrq: cmd %d\n", f->cmd->id);
+      upd_fdc_intrq( f, 1 ); // XXX HACK
     }
 
     if( f->cmd->id < UPD_CMD_SENSE_INT ) {
@@ -1464,7 +1494,13 @@ upd_fdc_read_data( upd_fdc *f )
 {
   libspectrum_byte r;
 
-  upd_fdc_intrq( f, 0 );
+fprintf(stderr, "read_data: ");
+//  if( ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
+//      ( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
+//  if( f->main_status & UPD_FDC_MAIN_DATA_READ )
+//    upd_fdc_update_intrq_data( f, 0 );
+    upd_fdc_intrq( f, 0 );
+
   r = upd_fdc_read_data_internal( f );
   upd_fdc_update_intrq( f );
   return r;
@@ -1473,7 +1509,13 @@ upd_fdc_read_data( upd_fdc *f )
 void
 upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
 {
-  upd_fdc_intrq( f, 0 );
+fprintf(stderr, "write_data: ");
+//  if( ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
+//      !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
+//  if( !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
+//    upd_fdc_update_intrq_data( f, 0 );
+    upd_fdc_intrq( f, 0 );
+
   upd_fdc_write_data_internal( f, data );
   upd_fdc_update_intrq( f );
 }
@@ -1482,8 +1524,24 @@ void upd_fdc_tc( upd_fdc *f, int tc )
 {
   if (tc > 0) {
     if( !f->tc ) {
+      fprintf(stderr, "%s: TC data_register[] = %d/%d/%d/%d EOT=%d\n",
+      	__func__,
+      	f->data_register[1],
+      	f->data_register[2],
+      	f->data_register[3],
+      	f->data_register[4],
+      	f->data_register[5]);
      f->data_register[3]++;
     }
+#if 0
+    if( !f->tc && ( f->main_status & UPD_FDC_MAIN_EXECUTION ) ) {
+      // HACK, force command end
+      if( !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
+        upd_fdc_write_data_internal( f, 0 );
+      else
+        upd_fdc_read_data_internal( f );
+    }
+#endif
     f->tc = 1;
   }
 }

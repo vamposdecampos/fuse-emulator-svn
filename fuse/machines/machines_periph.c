@@ -168,8 +168,9 @@ static const periph_port_t cobra_memory_ports[] = {
   /* 8255 nCS = !(A0 ^ A5) */
   { 0x0021, 0x0020, cobra_ula_read, cobra_ula_write },
   { 0x0021, 0x0001, cobra_ula_read, cobra_ula_write },
-  /* 8272 nCS = A1 */
-  { 0x0002, 0x0000, cobra_fdc_read, cobra_fdc_write },
+  /* 8272 nCS = A1;  8272 A0 = A3 */
+  { 0x000a, 0x0000, cobra_fdc_status, NULL },
+  { 0x000a, 0x0008, cobra_fdc_read, cobra_fdc_write },
   /* Z80-CTC nCE = A2 */
   { 0x0004, 0x0000, cobra_ctc_read, cobra_ctc_write },
   { 0, 0, NULL, NULL }

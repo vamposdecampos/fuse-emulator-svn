@@ -1628,12 +1628,14 @@ open_scl( buffer_t *buffer, disk_t *d )
   return d->status = DISK_OK;
 }
 
+#define MOO fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+
 static int
 open_td0( buffer_t *buffer, disk_t *d, int preindex )
 {
   int i, j, s, sectors, seclen, bpt, gap, mfm, mfm_old;
   int data_offset, track_offset, sector_offset;
-  unsigned char *uncomp_buff, *hdrb;
+  unsigned char *uncomp_buff, *hdrb, *shdr;
 
   if( buff[0] == 't' )		/* signature "td" -> advanced compression */
     return d->status = DISK_IMPL;	/* not implemented */
@@ -1714,6 +1716,7 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
     buffer->index += 4;		/* sector header*/
     for( s = 0; s < sectors; s++ ) {
       hdrb = buff;
+      fprintf(stderr, "index %Zd, hdrb %p\n", buffer->index, hdrb);
       buffer->index += 9;		/* skip to data */
       if( !( hdrb[4] & 0x40 ) )		/* if we have id we add */
 	id_add( d, hdrb[1], hdrb[0], hdrb[2], hdrb[3], gap,
@@ -1725,31 +1728,38 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
       if( !( hdrb[4] & 0x30 ) ) {		/* only if we have data */
         seclen = 0x80 << hdrb[3];
 
+      fprintf(stderr, "index %Zd, hdrb %p %d\n", buffer->index, hdrb, hdrb[8]);
         switch( hdrb[8] ) {
 	case 0:				/* raw sector data */
 	  if( hdrb[6] + 256 * hdrb[7] - 1 != seclen ) {
 	    if( uncomp_buff )
 	      free( uncomp_buff );
+MOO
 	    return d->status = DISK_OPEN;
 	  }
 	  if( data_add( d, buffer, NULL, hdrb[6] + 256 * hdrb[7] - 1,
 			hdrb[4] & 0x04 ? DDAM : NO_DDAM, gap, CRC_OK, NO_AUTOFILL, NULL ) ) {
 	    if( uncomp_buff )
 	      free( uncomp_buff );
+MOO
 	    return d->status = DISK_OPEN;
 	  }
 	  break;
 	case 1:				/* Repeated 2-byte pattern */
 	  if( uncomp_buff == NULL && alloc_uncompress_buffer( &uncomp_buff, 8192 ) )
 	    return d->status = DISK_MEM;
+	  shdr = hdrb;
 	  for( i = 0; i < seclen; ) {			/* fill buffer */
+	    hdrb = shdr + i;
 	    if( buffavail( buffer ) < 13 ) { 		/* check block header is avail. */
 	      free( uncomp_buff );
+MOO
 	      return d->status = DISK_OPEN;
 	    }
 	    if( i + 2 * ( hdrb[9] + 256*hdrb[10] ) > seclen ) {
 						  /* too many data bytes */
 	      free( uncomp_buff );
+MOO
 	      return d->status = DISK_OPEN;
 	    }
 	    /* ab ab ab ab ab ab ab ab ab ab ab ... */
@@ -1760,28 +1770,35 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
 	  if( data_add( d, NULL, uncomp_buff, hdrb[6] + 256 * hdrb[7] - 1,
 		      hdrb[4] & 0x04 ? DDAM : NO_DDAM, gap, CRC_OK, NO_AUTOFILL, NULL ) ) {
 	    free( uncomp_buff );
+MOO
 	    return d->status = DISK_OPEN;
 	  }
 	  break;
 	case 2:				/* Run Length Encoded data */
 	  if( uncomp_buff == NULL && alloc_uncompress_buffer( &uncomp_buff, 8192 ) )
 	    return d->status = DISK_MEM;
+	  shdr = hdrb;
 	  for( i = 0; i < seclen; ) {			/* fill buffer */
 	    if( buffavail( buffer ) < 11 ) {		/* check block header is avail */
 	      free( uncomp_buff );
+MOO
 	      return d->status = DISK_OPEN;
 	    }
+fprintf(stderr, "RLE offs=%Zd i=%d seclen=%d hdr: %d %d\n", buffer->index, i, seclen, hdrb[9], hdrb[10]);
 	    if( hdrb[9] == 0 ) {		/* raw bytes */
 	      if( i + hdrb[10] > seclen ||	/* too many data bytes */
 		      buffread( uncomp_buff + i, hdrb[10], buffer ) != 1 ) {
-	        free( uncomp_buff );
-	        return d->status = DISK_OPEN;
+//	        free( uncomp_buff );
+MOO
+//	        return d->status = DISK_OPEN;
 	      }
 	      i += hdrb[10];
+	      hdrb += 2 + hdrb[10];
 	    } else {				/* repeated samples */
 	      if( i + 2 * hdrb[9] * hdrb[10] > seclen || /* too many data bytes */
 		      buffread( uncomp_buff + i, 2 * hdrb[9], buffer ) != 1 ) {
 	        free( uncomp_buff );
+MOO
 	        return d->status = DISK_OPEN;
 	      }
 	      /*
@@ -1794,17 +1811,22 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
 	      for( j = 1; j < hdrb[10]; j++ ) /* repeat 'n' times */
 	        memcpy( uncomp_buff + i + j * 2 * hdrb[9], uncomp_buff + i, 2 * hdrb[9] );
 	      i += 2 * hdrb[9] * hdrb[10];
+	      hdrb += 2 + 2 * hdrb[9] * hdrb[10];
 	    }
 	  }
+	  hdrb = shdr;
 	  if( data_add( d, NULL, uncomp_buff, hdrb[6] + 256 * hdrb[7] - 1,
 	      hdrb[4] & 0x04 ? DDAM : NO_DDAM, gap, CRC_OK, NO_AUTOFILL, NULL ) ) {
 	    free( uncomp_buff );
+MOO
 	    return d->status = DISK_OPEN;
 	  }
 	  break;
 	default:
 	  if( uncomp_buff )
 	    free( uncomp_buff );
+MOO
+
 	  return d->status = DISK_OPEN;
 	  break;
 	}
