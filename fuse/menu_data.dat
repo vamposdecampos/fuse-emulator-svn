@@ -318,6 +318,56 @@ Media/Disk/Beta/Drive D:/Write _protect, Branch
 Media/Disk/Beta/Drive D:/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x114
 Media/Disk/Beta/Drive D:/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x014
 
+Media/Disk/_CoBra, Branch
+Media/Disk/CoBra/Drive _A:, Branch,,,menu_cobra_a_detail
+Media/Disk/CoBra/Drive A:/Insert _New, Item,, menu_media_insert_new,, 0x71
+Media/Disk/CoBra/Drive A:/_Insert..., Item,, menu_media_insert,, 0x71
+Media/Disk/CoBra/Drive A:/_Eject, Item,, menu_media_eject,, 0x71
+Media/Disk/CoBra/Drive A:/_Save, Item,, menu_media_save,, 0x071
+Media/Disk/CoBra/Drive A:/Save _As..., Item,, menu_media_save,, 0x171
+Media/Disk/CoBra/Drive A:/_Flip disk, Branch
+Media/Disk/CoBra/Drive A:/Flip disk/Turn _upside down, Item,, menu_media_flip,, 0x171
+Media/Disk/CoBra/Drive A:/Flip disk/Turn _back, Item,, menu_media_flip,, 0x071
+Media/Disk/CoBra/Drive A:/Write _protect, Branch
+Media/Disk/CoBra/Drive A:/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x171
+Media/Disk/CoBra/Drive A:/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x071
+Media/Disk/CoBra/Drive _B:, Branch,,,menu_cobra_b_detail
+Media/Disk/CoBra/Drive B:/Insert _New, Item,, menu_media_insert_new,, 0x72
+Media/Disk/CoBra/Drive B:/_Insert..., Item,, menu_media_insert,, 0x72
+Media/Disk/CoBra/Drive B:/_Eject, Item,, menu_media_eject,, 0x72
+Media/Disk/CoBra/Drive B:/_Save, Item,, menu_media_save,, 0x072
+Media/Disk/CoBra/Drive B:/Save _As..., Item,, menu_media_save,, 0x172
+Media/Disk/CoBra/Drive B:/_Flip disk, Branch
+Media/Disk/CoBra/Drive B:/Flip disk/Turn _upside down, Item,, menu_media_flip,, 0x172
+Media/Disk/CoBra/Drive B:/Flip disk/Turn _back, Item,, menu_media_flip,, 0x072
+Media/Disk/CoBra/Drive B:/Write _protect, Branch
+Media/Disk/CoBra/Drive B:/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x172
+Media/Disk/CoBra/Drive B:/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x072
+Media/Disk/CoBra/Drive _C:, Branch,,,menu_cobra_c_detail
+Media/Disk/CoBra/Drive C:/Insert _New, Item,, menu_media_insert_new,, 0x73
+Media/Disk/CoBra/Drive C:/_Insert..., Item,, menu_media_insert,, 0x73
+Media/Disk/CoBra/Drive C:/_Eject, Item,, menu_media_eject,, 0x73
+Media/Disk/CoBra/Drive C:/_Save, Item,, menu_media_save,, 0x073
+Media/Disk/CoBra/Drive C:/Save _As..., Item,, menu_media_save,, 0x173
+Media/Disk/CoBra/Drive C:/_Flip disk, Branch
+Media/Disk/CoBra/Drive C:/Flip disk/Turn _upside down, Item,, menu_media_flip,, 0x173
+Media/Disk/CoBra/Drive C:/Flip disk/Turn _back, Item,, menu_media_flip,, 0x073
+Media/Disk/CoBra/Drive C:/Write _protect, Branch
+Media/Disk/CoBra/Drive C:/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x173
+Media/Disk/CoBra/Drive C:/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x073
+Media/Disk/CoBra/Drive _D:, Branch,,,menu_cobra_d_detail
+Media/Disk/CoBra/Drive D:/Insert _New, Item,, menu_media_insert_new,, 0x74
+Media/Disk/CoBra/Drive D:/_Insert..., Item,, menu_media_insert,, 0x74
+Media/Disk/CoBra/Drive D:/_Eject, Item,, menu_media_eject,, 0x74
+Media/Disk/CoBra/Drive D:/_Save, Item,, menu_media_save,, 0x074
+Media/Disk/CoBra/Drive D:/Save _As..., Item,, menu_media_save,, 0x174
+Media/Disk/CoBra/Drive D:/_Flip disk, Branch
+Media/Disk/CoBra/Drive D:/Flip disk/Turn _upside down, Item,, menu_media_flip,, 0x174
+Media/Disk/CoBra/Drive D:/Flip disk/Turn _back, Item,, menu_media_flip,, 0x074
+Media/Disk/CoBra/Drive D:/Write _protect, Branch
+Media/Disk/CoBra/Drive D:/Write protect/_Enable, Item,, menu_media_writeprotect,, 0x174
+Media/Disk/CoBra/Drive D:/Write protect/_Disable, Item,, menu_media_writeprotect,, 0x074
+
 Media/Disk/+_D, Branch
 Media/Disk/+D/Drive _1, Branch,,,menu_plusd1_detail
 Media/Disk/+D/Drive 1/Insert _New, Item,, menu_media_insert_new,, 0x21

@@ -86,6 +86,7 @@ typedef enum ui_media_controller {
   UI_MEDIA_CONTROLLER_OPUS,
   UI_MEDIA_CONTROLLER_DISCIPLE,
   UI_MEDIA_CONTROLLER_IF1_FDC,
+  UI_MEDIA_CONTROLLER_COBRA,
 } ui_media_controller;
 
 #endif			/* #ifndef FUSE_UIMEDIA_H */

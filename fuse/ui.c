@@ -35,6 +35,7 @@
 #include "fuse.h"
 #include "peripherals/if1.h"
 #include "peripherals/kempmouse.h"
+#include "peripherals/cobra_fdc.h"
 #include "settings.h"
 #include "tape.h"
 #include "ui/ui.h"
@@ -582,6 +583,76 @@ static const struct menu_item_entries menu_item_lookup[] = {
   { UI_MENU_ITEM_MEDIA_DISK_IF1_FDC_B_WP_SET,
     "/Media/Disk/HC Interface 1/Drive 2/Write protect/Enable",
     "/Media/Disk/HC Interface 1/Drive 2/Write protect/Disable", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA, "/Media/Disk/CoBra" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_A, "/Media/Disk/CoBra/Drive A:" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_A_EJECT,
+    "/Media/Disk/CoBra/Drive A:/Eject",
+    "/Media/Disk/CoBra/Drive A:/Save As...", 0,
+    "/Media/Disk/CoBra/Drive A:/Save", 0,
+    "/Media/Disk/CoBra/Drive A:/Flip disk", 0,
+    "/Media/Disk/CoBra/Drive A:/Write protect", 0 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_A_FLIP_SET,
+    "/Media/Disk/CoBra/Drive A:/Flip disk/Turn upside down",
+    "/Media/Disk/CoBra/Drive A:/Flip disk/Turn back", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_A_WP_SET,
+    "/Media/Disk/CoBra/Drive A:/Write protect/Enable",
+    "/Media/Disk/CoBra/Drive A:/Write protect/Disable", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_B, "/Media/Disk/CoBra/Drive B:" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_B_EJECT,
+    "/Media/Disk/CoBra/Drive B:/Eject",
+    "/Media/Disk/CoBra/Drive B:/Save As...", 0,
+    "/Media/Disk/CoBra/Drive B:/Save", 0,
+    "/Media/Disk/CoBra/Drive B:/Flip disk", 0,
+    "/Media/Disk/CoBra/Drive B:/Write protect", 0 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_B_FLIP_SET,
+    "/Media/Disk/CoBra/Drive B:/Flip disk/Turn upside down",
+    "/Media/Disk/CoBra/Drive B:/Flip disk/Turn back", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_B_WP_SET,
+    "/Media/Disk/CoBra/Drive B:/Write protect/Enable",
+    "/Media/Disk/CoBra/Drive B:/Write protect/Disable", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_C, "/Media/Disk/CoBra/Drive C:" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_C_EJECT,
+    "/Media/Disk/CoBra/Drive C:/Eject",
+    "/Media/Disk/CoBra/Drive C:/Save As...", 0,
+    "/Media/Disk/CoBra/Drive C:/Save", 0,
+    "/Media/Disk/CoBra/Drive C:/Flip disk", 0,
+    "/Media/Disk/CoBra/Drive C:/Write protect", 0 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_C_FLIP_SET,
+    "/Media/Disk/CoBra/Drive C:/Flip disk/Turn upside down",
+    "/Media/Disk/CoBra/Drive C:/Flip disk/Turn back", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_C_WP_SET,
+    "/Media/Disk/CoBra/Drive C:/Write protect/Enable",
+    "/Media/Disk/CoBra/Drive C:/Write protect/Disable", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_D, "/Media/Disk/CoBra/Drive D:" },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_D_EJECT,
+    "/Media/Disk/CoBra/Drive D:/Eject",
+    "/Media/Disk/CoBra/Drive D:/Save As...", 0,
+    "/Media/Disk/CoBra/Drive D:/Save", 0,
+    "/Media/Disk/CoBra/Drive D:/Flip disk", 0,
+    "/Media/Disk/CoBra/Drive D:/Write protect", 0 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_D_FLIP_SET,
+    "/Media/Disk/CoBra/Drive D:/Flip disk/Turn upside down",
+    "/Media/Disk/CoBra/Drive D:/Flip disk/Turn back", 1 },
+
+  { UI_MENU_ITEM_MEDIA_DISK_COBRA_D_WP_SET,
+    "/Media/Disk/CoBra/Drive D:/Write protect/Enable",
+    "/Media/Disk/CoBra/Drive D:/Write protect/Disable", 1 },
 
   { UI_MENU_ITEM_MEDIA_IDE, "/Media/IDE" },
 
