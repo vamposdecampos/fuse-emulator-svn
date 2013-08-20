@@ -506,26 +506,6 @@ specplus3_disk_save( specplus3_drive_number which, int saveas )
 }
 
 int
-specplus3_disk_flip( specplus3_drive_number which, int flip )
-{
-  upd_fdc_drive *d;
-
-  if( which >= SPECPLUS3_NUM_DRIVES )
-    return 1;
-
-  d = &specplus3_drives[ which ];
-
-  if( !d->fdd.loaded )
-    return 1;
-
-  fdd_flip( &d->fdd, flip );
-
-  /* Update the 'flip' menu items */
-  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_FLIP );
-  return 0;
-}
-
-int
 specplus3_disk_writeprotect( specplus3_drive_number which, int wrprot )
 {
   upd_fdc_drive *d;
