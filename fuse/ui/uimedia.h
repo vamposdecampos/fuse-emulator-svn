@@ -59,5 +59,6 @@ void ui_media_drive_update_parent_menus( void );
 void ui_media_drive_update_menus( ui_media_drive_info_t *drive, unsigned flags );
 
 int ui_media_drive_flip( int controller, int which, int flip );
+int ui_media_drive_writeprotect( int controller, int which, int wrprot );
 
 #endif			/* #ifndef FUSE_UIMEDIA_H */
