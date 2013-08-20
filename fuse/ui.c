@@ -701,35 +701,6 @@ ui_tape_write( void )
 }
 
 int
-ui_plus3_disk_write( specplus3_drive_number which, int saveas )
-{
-  int err;
-  char drive, *filename = NULL, title[80];
-
-  switch( which ) {
-    case SPECPLUS3_DRIVE_A: drive = 'A'; break;
-    case SPECPLUS3_DRIVE_B: drive = 'B'; break;
-    default: drive = '?'; break;
-  }
-
-  fuse_emulation_pause();
-
-  snprintf( title, 80, "Fuse - Write +3 Disk %c:", drive );
-
-  if( saveas ) {
-    filename = ui_get_save_filename( title );
-    if( !filename ) { fuse_emulation_unpause(); return 1; }
-  }
-  err = specplus3_disk_write( which, filename );
-
-  if( saveas ) libspectrum_free( filename );
-
-  fuse_emulation_unpause();
-
-  return err;
-}
-
-int
 ui_beta_disk_write( beta_drive_number which, int saveas )
 {
   int err;

@@ -500,9 +500,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_save )
   saveas = ( action & 0xf00 ) >> 8;
 
   switch( type ) {
-  case 0:
-    specplus3_disk_save( which, saveas );
-    break;
   case 1:
     beta_disk_save( which, saveas );
     break;
