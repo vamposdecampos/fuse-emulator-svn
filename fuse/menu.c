@@ -916,6 +916,9 @@ menu_check_media_changed( void )
 
   confirm = tape_close(); if( confirm ) return 1;
 
+  confirm = ui_media_drive_eject_all();
+  if( confirm ) return 1;
+
   confirm = specplus3_disk_eject( SPECPLUS3_DRIVE_A );
   if( confirm ) return 1;
 
