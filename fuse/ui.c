@@ -682,6 +682,7 @@ ui_menu_disk_update( void )
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS, opus );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD, plusd );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE, disciple );
+  ui_media_drive_update_parent_menus();
 }
 
 int
