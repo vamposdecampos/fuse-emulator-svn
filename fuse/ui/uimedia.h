@@ -26,10 +26,12 @@
 #ifndef FUSE_UIMEDIA_H
 #define FUSE_UIMEDIA_H
 
-typedef int (*ui_media_drive_is_available_fn)( void );
-
 struct fdd_t;
+struct fdd_params_t;
 struct disk_t;
+
+typedef int (*ui_media_drive_is_available_fn)( void );
+typedef const struct fdd_params_t* (*ui_media_drive_get_params_fn) ( void );
 
 typedef struct ui_media_drive_info_t
 {
@@ -42,6 +44,7 @@ typedef struct ui_media_drive_info_t
   int menu_item_flip;
   int menu_item_wp;
   ui_media_drive_is_available_fn is_available;
+  ui_media_drive_get_params_fn get_params;
   struct fdd_t *fdd;
   struct disk_t *disk;
 } ui_media_drive_info_t;
