@@ -467,9 +467,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_eject )
   type = ( action & 0x0f0 ) >> 4;
 
   switch( type ) {
-  case 0:
-    specplus3_disk_eject( which );
-    break;
   case 1:
     beta_disk_eject( which );
     break;
@@ -917,12 +914,6 @@ menu_check_media_changed( void )
   confirm = tape_close(); if( confirm ) return 1;
 
   confirm = ui_media_drive_eject_all();
-  if( confirm ) return 1;
-
-  confirm = specplus3_disk_eject( SPECPLUS3_DRIVE_A );
-  if( confirm ) return 1;
-
-  confirm = specplus3_disk_eject( SPECPLUS3_DRIVE_B );
   if( confirm ) return 1;
 
   confirm = beta_disk_eject( BETA_DRIVE_A );

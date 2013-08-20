@@ -405,7 +405,7 @@ specplus3_disk_insert( specplus3_drive_number which, const char *filename,
   /* Eject any disk already in the drive */
   if( d->fdd.loaded ) {
     /* Abort the insert if we want to keep the current disk */
-    if( specplus3_disk_eject( which ) ) return 0;
+    if( ui_media_drive_eject( 0, which ) ) return 0;
   }
 
   if( filename ) {
@@ -443,47 +443,6 @@ specplus3_disk_insert( specplus3_drive_number which, const char *filename,
     /* XXX */
   }
 
-  return 0;
-}
-
-int
-specplus3_disk_eject( specplus3_drive_number which )
-{
-  upd_fdc_drive *d;
-
-  if( which >= SPECPLUS3_NUM_DRIVES )
-    return 1;
-
-  d = &specplus3_drives[ which ];
-
-  if( d->disk.type == DISK_TYPE_NONE )
-    return 0;
-
-  if( d->disk.dirty ) {
-
-    ui_confirm_save_t confirm = ui_confirm_save(
-      "Disk in drive %c has been modified.\n"
-      "Do you want to save it?",
-      which == SPECPLUS3_DRIVE_A ? 'A' : 'B'
-    );
-
-    switch( confirm ) {
-
-    case UI_CONFIRM_SAVE_SAVE:
-      if( ui_media_drive_save( 0, which, 0 ) ) return 1;   /* first save it...*/
-      break;
-
-    case UI_CONFIRM_SAVE_DONTSAVE: break;
-    case UI_CONFIRM_SAVE_CANCEL: return 1;
-
-    }
-  }
-
-  fdd_unload( &d->fdd );
-  disk_close( &d->disk );
-
-  /* Set the 'eject' item inactive */
-  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_EJECT );
   return 0;
 }
 
