@@ -38,6 +38,7 @@
 #include "settings.h"
 #include "tape.h"
 #include "ui/ui.h"
+#include "ui/uimedia.h"
 #include "ui/widget/widget.h"
 
 #define MESSAGE_MAX_LENGTH 256
@@ -655,8 +656,10 @@ ui_menu_disk_update( void )
 {
   int plus3, beta, plusd, opus, disciple;
   int capabilities;
+  int drives_avail;
 
   capabilities = machine_current->capabilities;
+  drives_avail = ui_media_drive_any_available();
 
   /* Set the disk menu items and statusbar appropriately */
   plus3 = capabilities & LIBSPECTRUM_MACHINE_CAPABILITY_PLUS3_DISK;
@@ -665,7 +668,7 @@ ui_menu_disk_update( void )
   plusd = plusd_available;
   disciple = disciple_available;
 
-  if( plus3 || beta || opus || plusd || disciple ) {
+  if( drives_avail || beta || opus || plusd || disciple ) {
     ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK, 1 );
     ui_statusbar_update( UI_STATUSBAR_ITEM_DISK, UI_STATUSBAR_STATE_INACTIVE );
   } else {
