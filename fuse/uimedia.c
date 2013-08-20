@@ -192,16 +192,12 @@ drive_disk_write( ui_media_drive_info_t *drive, const char *filename )
 }
 
 
-int
-ui_media_drive_save( int controller, int which, int saveas )
+static int
+drive_save( ui_media_drive_info_t *drive, int saveas )
 {
-  ui_media_drive_info_t *drive;
   int err;
   char *filename = NULL, title[80];
 
-  drive = ui_media_drive_find( controller, which );
-  if( !drive )
-    return -1;
   if( drive->disk->type == DISK_TYPE_NONE )
     return 0;
   if( drive->disk->filename == NULL )
@@ -228,5 +224,55 @@ ui_media_drive_save( int controller, int which, int saveas )
     return 1;
 
   drive->disk->dirty = 0;
+  return 0;
+}
+
+int
+ui_media_drive_save( int controller, int which, int saveas )
+{
+  ui_media_drive_info_t *drive;
+
+  drive = ui_media_drive_find( controller, which );
+  if( !drive )
+    return -1;
+  return drive_save( drive, saveas );
+}
+
+int
+ui_media_drive_eject( int controller, int which )
+{
+  ui_media_drive_info_t *drive;
+
+  drive = ui_media_drive_find( controller, which );
+  if( !drive )
+    return -1;
+
+  if( drive->disk->type == DISK_TYPE_NONE )
+    return 0;
+
+  if( drive->disk->dirty ) {
+
+    ui_confirm_save_t confirm = ui_confirm_save(
+      "Disk in drive %s has been modified.\n"
+      "Do you want to save it?",
+      drive->name
+    );
+
+    switch( confirm ) {
+
+    case UI_CONFIRM_SAVE_SAVE:
+      if( drive_save( drive, 0 ) )
+        return 1;   /* first save it...*/
+      break;
+
+    case UI_CONFIRM_SAVE_DONTSAVE: break;
+    case UI_CONFIRM_SAVE_CANCEL: return 1;
+
+    }
+  }
+
+  fdd_unload( drive->fdd );
+  disk_close( drive->disk );
+  ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_EJECT );
   return 0;
 }
