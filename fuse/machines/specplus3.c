@@ -397,60 +397,13 @@ int
 specplus3_disk_insert( specplus3_drive_number which, const char *filename,
 		   int autoload )
 {
-  int error;
-  upd_fdc_drive *d;
-  const fdd_params_t *dt;
-
   if( which >= SPECPLUS3_NUM_DRIVES ) {
     ui_error( UI_ERROR_ERROR, "specplus3_disk_insert: unknown drive %d",
 	      which );
     fuse_abort();
   }
 
-  d = &specplus3_drives[ which ];
-
-  /* Eject any disk already in the drive */
-  if( d->fdd.loaded ) {
-    /* Abort the insert if we want to keep the current disk */
-    if( ui_media_drive_eject( 0, which ) ) return 0;
-  }
-
-  if( filename ) {
-    error = disk_open( &d->disk, filename, 0, DISK_TRY_MERGE( d->fdd.fdd_heads ) );
-    if( error != DISK_OK ) {
-      ui_error( UI_ERROR_ERROR, "Failed to open disk image: %s",
-				disk_strerror( error ) );
-      return 1;
-    }
-  } else {
-    switch( which ) {
-    case 0:
-      dt = &fdd_params[ option_enumerate_diskoptions_drive_plus3a_type() + 1 ];	/* +1 => there is no `Disabled' */
-      break;
-    case 1:
-    default:
-      dt = &fdd_params[ option_enumerate_diskoptions_drive_plus3b_type() ];
-      break;
-    }
-    error = disk_new( &d->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_UDI );
-    disk_preformat( &d->disk );			/* pre-format disk for +3 */
-    if( error != DISK_OK ) {
-      ui_error( UI_ERROR_ERROR, "Failed to create disk image: %s",
-				disk_strerror( error ) );
-      return 1;
-    }
-  }
-
-  fdd_load( &d->fdd, &d->disk, 0 );
-
-  /* Set the 'eject' item active */
-  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_ALL );
-
-  if( filename && autoload ) {
-    /* XXX */
-  }
-
-  return 0;
+  return ui_media_drive_insert( &ui_drives[ which ], filename, autoload);
 }
 
 fdd_t *
