@@ -518,6 +518,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_save )
   case 5:
     disciple_disk_save( which, saveas );
     break;
+  default:
+    ui_media_drive_save( type, which, saveas );
+    break;
   }
 }
 
