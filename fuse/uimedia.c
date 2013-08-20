@@ -48,6 +48,33 @@ ui_media_drive_end( void )
   registered_drives = NULL;
 }
 
+struct find_info {
+  int controller;
+  int drive;
+};
+
+static gint
+find_drive( gconstpointer data, gconstpointer user_data )
+{
+  const ui_media_drive_info_t *drive = data;
+  const struct find_info *info = user_data;
+
+  return !( drive->controller_index == info->controller &&
+            drive->drive_index == info->drive );
+}
+
+ui_media_drive_info_t *
+ui_media_drive_find( int controller, int drive )
+{
+  struct find_info info = {
+    /* .controller = */ controller,
+    /* .drive = */ drive,
+  };
+  GSList *item;
+  item = g_slist_find_custom( registered_drives, &info, find_drive );
+  return item ? item->data : NULL;
+}
+
 
 static void
 any_available( gpointer data, gpointer user_data )
