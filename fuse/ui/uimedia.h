@@ -58,7 +58,8 @@ ui_media_drive_info_t *ui_media_drive_find( int controller, int drive );
 
 int ui_media_drive_any_available( void );
 void ui_media_drive_update_parent_menus( void );
-void ui_media_drive_update_menus( ui_media_drive_info_t *drive, unsigned flags );
+void ui_media_drive_update_menus( const ui_media_drive_info_t *drive, unsigned flags );
+int ui_media_drive_eject_all( void );
 
 int ui_media_drive_save( int controller, int which, int saveas );
 int ui_media_drive_eject( int controller, int which );

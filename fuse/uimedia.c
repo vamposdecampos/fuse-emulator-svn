@@ -120,7 +120,7 @@ maybe_menu_activate( int id, int activate )
 }
 
 void
-ui_media_drive_update_menus( ui_media_drive_info_t *drive, unsigned flags )
+ui_media_drive_update_menus( const ui_media_drive_info_t *drive, unsigned flags )
 {
   if( !drive->fdd )
     return;
@@ -169,7 +169,7 @@ ui_media_drive_writeprotect( int controller, int which, int wrprot )
 }
 
 static int
-drive_disk_write( ui_media_drive_info_t *drive, const char *filename )
+drive_disk_write( const ui_media_drive_info_t *drive, const char *filename )
 {
   int error;
 
@@ -193,7 +193,7 @@ drive_disk_write( ui_media_drive_info_t *drive, const char *filename )
 
 
 static int
-drive_save( ui_media_drive_info_t *drive, int saveas )
+drive_save( const ui_media_drive_info_t *drive, int saveas )
 {
   int err;
   char *filename = NULL, title[80];
@@ -238,15 +238,9 @@ ui_media_drive_save( int controller, int which, int saveas )
   return drive_save( drive, saveas );
 }
 
-int
-ui_media_drive_eject( int controller, int which )
+static int
+drive_eject( const ui_media_drive_info_t *drive )
 {
-  ui_media_drive_info_t *drive;
-
-  drive = ui_media_drive_find( controller, which );
-  if( !drive )
-    return -1;
-
   if( drive->disk->type == DISK_TYPE_NONE )
     return 0;
 
@@ -275,4 +269,31 @@ ui_media_drive_eject( int controller, int which )
   disk_close( drive->disk );
   ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_EJECT );
   return 0;
+}
+
+int
+ui_media_drive_eject( int controller, int which )
+{
+  ui_media_drive_info_t *drive;
+
+  drive = ui_media_drive_find( controller, which );
+  if( !drive )
+    return -1;
+  return drive_eject( drive );
+}
+
+static gint
+eject_all( gconstpointer data, gconstpointer user_data )
+{
+  const ui_media_drive_info_t *drive = data;
+
+  return !drive_eject( drive );
+}
+
+int
+ui_media_drive_eject_all( void )
+{
+  GSList *item;
+  item = g_slist_find_custom( registered_drives, NULL, eject_all );
+  return item ? 1 : 0;
 }
