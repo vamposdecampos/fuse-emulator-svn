@@ -364,6 +364,7 @@ MENU_CALLBACK_WITH_ACTION( menu_media_if1_rs232 )
 MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
 {
   int which, type;
+  ui_media_drive_info_t *drive;
   
   ui_widget_finish();
 
@@ -390,6 +391,12 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
   case 5:
     disciple_disk_insert( which, NULL, 0 );
     break;
+  default:
+    drive = ui_media_drive_find( type, which );
+    if( !drive )
+      return;
+    ui_media_drive_insert( drive, NULL, 0 );
+    break;
   }
 }
 
@@ -398,6 +405,7 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   char *filename;
   char title[80];
   int which, type;
+  ui_media_drive_info_t *drive = NULL;
   
   action--;
   which = action & 0x0f;
@@ -425,7 +433,11 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
     snprintf( title, 80, "Fuse - Insert DISCiPLE Disk %i", which + 1 );
     break;
   default:
-    return;
+    drive = ui_media_drive_find( type, which );
+    if( !drive )
+      return;
+    snprintf( title, sizeof(title), "Fuse - Insert %s", drive->name );
+    break;
   }
   filename = ui_get_open_filename( title );
   if( !filename ) { fuse_emulation_unpause(); return; }
@@ -448,6 +460,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
     break;
   case 5:
     disciple_disk_insert( which, filename, 0 );
+    break;
+  default:
+    ui_media_drive_insert( drive, filename, 0 );
     break;
   }
 

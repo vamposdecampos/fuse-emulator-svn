@@ -31,9 +31,14 @@
 #endif
 
 #include "fuse.h"
+#include "options.h"
 #include "ui/ui.h"
 #include "ui/uimedia.h"
 #include "utils.h"
+
+#define DISK_TRY_MERGE(heads) ( option_enumerate_diskoptions_disk_try_merge() == 2 || \
+				( option_enumerate_diskoptions_disk_try_merge() == 1 && heads == 1 ) )
+
 
 static GSList *registered_drives = NULL;
 
@@ -168,6 +173,7 @@ ui_media_drive_writeprotect( int controller, int which, int wrprot )
   return 0;
 }
 
+
 static int
 drive_disk_write( const ui_media_drive_info_t *drive, const char *filename )
 {
@@ -296,4 +302,53 @@ ui_media_drive_eject_all( void )
   GSList *item;
   item = g_slist_find_custom( registered_drives, NULL, eject_all );
   return item ? 1 : 0;
+}
+
+
+int
+ui_media_drive_insert( const ui_media_drive_info_t *drive,
+		       const char *filename, int autoload )
+{
+  int error;
+  const fdd_params_t *dt;
+
+  /* Eject any disk already in the drive */
+  if( drive->fdd->loaded ) {
+    /* Abort the insert if we want to keep the current disk */
+    if( drive_eject( drive ) )
+      return 0;
+  }
+
+  if( filename ) {
+    error = disk_open( drive->disk, filename, 0, DISK_TRY_MERGE( drive->fdd->fdd_heads ) );
+    if( error != DISK_OK ) {
+      ui_error( UI_ERROR_ERROR, "Failed to open disk image: %s",
+				disk_strerror( error ) );
+      return 1;
+    }
+  } else {
+    dt = drive->get_params();
+    error = disk_new( drive->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_UDI );
+    if( error != DISK_OK ) {
+      ui_error( UI_ERROR_ERROR, "Failed to create disk image: %s",
+				disk_strerror( error ) );
+      return 1;
+    }
+  }
+  if( drive->insert_hook ) {
+    error = drive->insert_hook( drive, !filename );
+    if( error )
+      return 1;
+  }
+
+  fdd_load( drive->fdd, drive->disk, 0 );
+
+  /* Set the 'eject' item active */
+  ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_ALL );
+
+  if( filename && autoload ) {
+    /* XXX */
+  }
+
+  return 0;
 }
