@@ -485,6 +485,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_eject )
   case 5:
     disciple_disk_eject( which );
     break;
+  default:
+    ui_media_drive_eject( type, which );
+    break;
   }
 }
 
