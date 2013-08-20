@@ -533,9 +533,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_flip )
   flip = !!( action & 0x100 );
 
   switch( type ) {
-  case 0:
-    specplus3_disk_flip( which, flip );
-    break;
   case 1:
     beta_disk_flip( which, flip );
     break;
