@@ -133,3 +133,21 @@ ui_media_drive_update_menus( ui_media_drive_info_t *drive, unsigned flags )
   if( flags & UI_MEDIA_DRIVE_UPDATE_WP )
     maybe_menu_activate( drive->menu_item_wp, !drive->fdd->wrprot );
 }
+
+
+int
+ui_media_drive_flip( int controller, int which, int flip )
+{
+  ui_media_drive_info_t *drive;
+
+  drive = ui_media_drive_find( controller, which );
+  if( !drive )
+    return -1;
+  if( !drive->fdd->loaded )
+    return 1;
+
+  fdd_flip( drive->fdd, flip );
+  ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_FLIP );
+  return 0;
+}
+
