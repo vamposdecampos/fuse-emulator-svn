@@ -53,6 +53,7 @@
 #include "tape.h"
 #include "ui/scaler/scaler.h"
 #include "ui/ui.h"
+#include "ui/uimedia.h"
 #include "utils.h"
 #include "z80/z80.h"
 
@@ -547,6 +548,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_flip )
     break;
   case 5:
     disciple_disk_flip( which, flip );
+    break;
+  default:
+    ui_media_drive_flip( type, which, flip );
     break;
   }
 }
