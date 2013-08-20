@@ -23,4 +23,26 @@
 
 */
 
+#include <config.h>
+
+#ifdef HAVE_LIB_GLIB
+#include <glib.h>
+#endif
+
 #include "ui/uimedia.h"
+
+static GSList *registered_drives = NULL;
+
+int
+ui_media_drive_register( ui_media_drive_info_t *drive )
+{
+  registered_drives = g_slist_append( registered_drives, drive );
+  return 0;
+}
+
+void
+ui_media_drive_end( void )
+{
+  g_slist_free( registered_drives );
+  registered_drives = NULL;
+}
