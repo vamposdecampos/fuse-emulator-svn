@@ -564,9 +564,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_writeprotect )
   wrprot = !!( action & 0x100 );
 
   switch( type ) {
-  case 0:
-    specplus3_disk_writeprotect( which, wrprot );
-    break;
   case 1:
     beta_disk_writeprotect( which, wrprot );
     break;

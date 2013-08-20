@@ -506,26 +506,6 @@ specplus3_disk_save( specplus3_drive_number which, int saveas )
 }
 
 int
-specplus3_disk_writeprotect( specplus3_drive_number which, int wrprot )
-{
-  upd_fdc_drive *d;
-
-  if( which >= SPECPLUS3_NUM_DRIVES )
-    return 1;
-
-  d = &specplus3_drives[ which ];
-
-  if( !d->fdd.loaded )
-    return 1;
-
-  fdd_wrprot( &d->fdd, wrprot );
-
-  /* Update the 'write protect' menu item */
-  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_WP );
-  return 0;
-}
-
-int
 specplus3_disk_write( specplus3_drive_number which, const char *filename )
 {
   upd_fdc_drive *d = &specplus3_drives[ which ];
