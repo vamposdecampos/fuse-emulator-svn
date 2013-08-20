@@ -24,13 +24,16 @@
 */
 
 #include <config.h>
+#include <string.h>
 
 #ifdef HAVE_LIB_GLIB
 #include <glib.h>
 #endif
 
+#include "fuse.h"
 #include "ui/ui.h"
 #include "ui/uimedia.h"
+#include "utils.h"
 
 static GSList *registered_drives = NULL;
 
@@ -165,3 +168,65 @@ ui_media_drive_writeprotect( int controller, int which, int wrprot )
   return 0;
 }
 
+static int
+drive_disk_write( ui_media_drive_info_t *drive, const char *filename )
+{
+  int error;
+
+  drive->disk->type = DISK_TYPE_NONE;
+  if( filename == NULL )
+    filename = drive->disk->filename; /* write over original file */
+  error = disk_write( drive->disk, filename );
+
+  if( error != DISK_OK ) {
+    ui_error( UI_ERROR_ERROR, "couldn't write '%s' file: %s", filename,
+	      disk_strerror( error ) );
+    return 1;
+  }
+
+  if( drive->disk->filename && strcmp( filename, drive->disk->filename ) ) {
+    free( drive->disk->filename );
+    drive->disk->filename = utils_safe_strdup( filename );
+  }
+  return 0;
+}
+
+
+int
+ui_media_drive_save( int controller, int which, int saveas )
+{
+  ui_media_drive_info_t *drive;
+  int err;
+  char *filename = NULL, title[80];
+
+  drive = ui_media_drive_find( controller, which );
+  if( !drive )
+    return -1;
+  if( drive->disk->type == DISK_TYPE_NONE )
+    return 0;
+  if( drive->disk->filename == NULL )
+    saveas = 1;
+
+  fuse_emulation_pause();
+
+  snprintf( title, sizeof( title ), "Fuse - Write %s", drive->name );
+  if( saveas ) {
+    filename = ui_get_save_filename( title );
+    if( !filename ) {
+      fuse_emulation_unpause();
+      return 1;
+    }
+  }
+
+  err = drive_disk_write( drive, filename );
+
+  if( saveas )
+    libspectrum_free( filename );
+
+  fuse_emulation_unpause();
+  if( err )
+    return 1;
+
+  drive->disk->dirty = 0;
+  return 0;
+}
