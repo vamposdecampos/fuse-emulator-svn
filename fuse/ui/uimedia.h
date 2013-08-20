@@ -29,6 +29,7 @@
 typedef int (*ui_media_drive_is_available_fn)( void );
 
 struct fdd_t;
+struct disk_t;
 
 typedef struct ui_media_drive_info_t
 {
@@ -42,6 +43,7 @@ typedef struct ui_media_drive_info_t
   int menu_item_wp;
   ui_media_drive_is_available_fn is_available;
   struct fdd_t *fdd;
+  struct disk_t *disk;
 } ui_media_drive_info_t;
 
 int ui_media_drive_register( ui_media_drive_info_t *drive );
