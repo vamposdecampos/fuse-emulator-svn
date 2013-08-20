@@ -76,22 +76,20 @@ ui_media_drive_find( int controller, int drive )
 }
 
 
-static void
-any_available( gpointer data, gpointer user_data )
+static gint
+any_available( gconstpointer data, gconstpointer user_data )
 {
   const ui_media_drive_info_t *drive = data;
-  int *res_ptr = user_data;
 
-  if( drive->is_available && drive->is_available() )
-    *res_ptr = 1;
+  return !( drive->is_available && drive->is_available() );
 }
 
 int
 ui_media_drive_any_available( void )
 {
-  gboolean res = 0;
-  g_slist_foreach( registered_drives, any_available, &res );
-  return res;
+  GSList *item;
+  item = g_slist_find_custom( registered_drives, NULL, any_available );
+  return item ? 1 : 0;
 }
 
 
