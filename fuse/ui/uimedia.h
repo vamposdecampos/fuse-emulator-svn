@@ -45,7 +45,14 @@ typedef struct ui_media_drive_info_t
 int ui_media_drive_register( ui_media_drive_info_t *drive );
 void ui_media_drive_end( void );
 
+#define UI_MEDIA_DRIVE_UPDATE_ALL	(~0)
+#define UI_MEDIA_DRIVE_UPDATE_TOP	(1 << 0)
+#define UI_MEDIA_DRIVE_UPDATE_EJECT	(1 << 1)
+#define UI_MEDIA_DRIVE_UPDATE_FLIP	(1 << 2)
+#define UI_MEDIA_DRIVE_UPDATE_WP	(1 << 3)
+
 int ui_media_drive_any_available( void );
 void ui_media_drive_update_parent_menus( void );
+void ui_media_drive_update_menus( ui_media_drive_info_t *drive, unsigned flags );
 
 #endif			/* #ifndef FUSE_UIMEDIA_H */
