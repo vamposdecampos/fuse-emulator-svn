@@ -163,6 +163,7 @@ specplus3_765_init( void )
 
   for( i = 0; i < SPECPLUS3_NUM_DRIVES; i++ ) {
     ui_drives[ i ].fdd = &specplus3_drives[ i ].fdd;
+    ui_drives[ i ].disk = &specplus3_drives[ i ].disk;
     ui_media_drive_register( &ui_drives[ i ] );
   }
 }
