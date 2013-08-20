@@ -32,6 +32,10 @@ typedef struct ui_media_drive_info_t
 {
   const char *name;
   int menu_item_parent;
+  int menu_item_top;
+  int menu_item_eject;
+  int menu_item_flip;
+  int menu_item_wp;
   ui_media_drive_is_available_fn is_available;
 } ui_media_drive_info_t;
 
