@@ -373,9 +373,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
   type = ( action & 0xf0 ) >> 4;
 
   switch( type ) {
-  case 0:
-    specplus3_disk_insert( which, NULL, 0 );
-    break;
   case 1:
     beta_disk_insert( which, NULL, 0 );
     break;
@@ -414,9 +411,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   fuse_emulation_pause();
 
   switch( type ) {
-  case 0:
-    snprintf( title, 80, "Fuse - Insert +3 Disk %c:", 'A' + which );
-    break;
   case 1:
     snprintf( title, 80, "Fuse - Insert Beta Disk %c:", 'A' + which );
     break;
@@ -443,9 +437,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   if( !filename ) { fuse_emulation_unpause(); return; }
 
   switch( type ) {
-  case 0:
-    specplus3_disk_insert( which, filename, 0 );
-    break;
   case 1:
     beta_disk_insert( which, filename, 0 );
     break;
