@@ -82,3 +82,27 @@ ui_media_drive_update_parent_menus( void )
 {
   g_slist_foreach( registered_drives, update_parent_menus, NULL );
 }
+
+static int
+maybe_menu_activate( int id, int activate )
+{
+  if( id < 0 )
+    return 0;
+  return ui_menu_activate( id, activate );
+}
+
+void
+ui_media_drive_update_menus( ui_media_drive_info_t *drive, unsigned flags )
+{
+  if( !drive->fdd )
+    return;
+
+  if( flags & UI_MEDIA_DRIVE_UPDATE_TOP )
+    maybe_menu_activate( drive->menu_item_top, drive->fdd->type != FDD_TYPE_NONE );
+  if( flags & UI_MEDIA_DRIVE_UPDATE_EJECT )
+    maybe_menu_activate( drive->menu_item_eject, drive->fdd->loaded );
+  if( flags & UI_MEDIA_DRIVE_UPDATE_FLIP )
+    maybe_menu_activate( drive->menu_item_flip, !drive->fdd->upsidedown );
+  if( flags & UI_MEDIA_DRIVE_UPDATE_WP )
+    maybe_menu_activate( drive->menu_item_wp, !drive->fdd->wrprot );
+}
