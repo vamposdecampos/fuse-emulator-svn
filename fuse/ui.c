@@ -654,15 +654,12 @@ ui_menu_activate( ui_menu_item item, int active )
 void
 ui_menu_disk_update( void )
 {
-  int plus3, beta, plusd, opus, disciple;
-  int capabilities;
+  int beta, plusd, opus, disciple;
   int drives_avail;
 
-  capabilities = machine_current->capabilities;
   drives_avail = ui_media_drive_any_available();
 
   /* Set the disk menu items and statusbar appropriately */
-  plus3 = capabilities & LIBSPECTRUM_MACHINE_CAPABILITY_PLUS3_DISK;
   beta = beta_available;
   opus = opus_available;
   plusd = plusd_available;
@@ -677,7 +674,6 @@ ui_menu_disk_update( void )
                          UI_STATUSBAR_STATE_NOT_AVAILABLE );
   }
 
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3, plus3 );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA, beta );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS, opus );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD, plusd );
