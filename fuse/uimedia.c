@@ -151,3 +151,19 @@ ui_media_drive_flip( int controller, int which, int flip )
   return 0;
 }
 
+int
+ui_media_drive_writeprotect( int controller, int which, int wrprot )
+{
+  ui_media_drive_info_t *drive;
+
+  drive = ui_media_drive_find( controller, which );
+  if( !drive )
+    return -1;
+  if( !drive->fdd->loaded )
+    return 1;
+
+  fdd_wrprot( drive->fdd, wrprot );
+  ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_WP );
+  return 0;
+}
+

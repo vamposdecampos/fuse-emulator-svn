@@ -582,6 +582,9 @@ MENU_CALLBACK_WITH_ACTION( menu_media_writeprotect )
   case 5:
     disciple_disk_writeprotect( which, wrprot );
     break;
+  default:
+    ui_media_drive_writeprotect( type, which, wrprot );
+    break;
   }
 
 }
