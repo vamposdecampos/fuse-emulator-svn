@@ -74,11 +74,19 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   {
     .name = "Drive A:",
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUS3,
+    .menu_item_top = -1,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_WP_SET,
     .is_available = &ui_drive_is_available,
   },
   {
     .name = "Drive B:",
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUS3,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_PLUS3_B,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_WP_SET,
     .is_available = &ui_drive_is_available,
   },
 };
