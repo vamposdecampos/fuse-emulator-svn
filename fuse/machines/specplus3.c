@@ -51,6 +51,7 @@
 #include "specplus3.h"
 #include "spectrum.h"
 #include "ui/ui.h"
+#include "ui/uimedia.h"
 #include "utils.h"
 #include "options.h"	/* needed for get combo options */
 
@@ -66,6 +67,19 @@ static int specplus3_reset( void );
 #define SPECPLUS3_NUM_DRIVES 2
 upd_fdc *specplus3_fdc;
 static upd_fdc_drive specplus3_drives[ SPECPLUS3_NUM_DRIVES ];
+
+static int ui_drive_is_available( void );
+
+static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
+  {
+    /* .name = */ "Drive A:",
+    /* .is_available = */ &ui_drive_is_available,
+  },
+  {
+    /* .name = */ "Drive B:",
+    /* .is_available = */ &ui_drive_is_available,
+  },
+};
 
 int
 specplus3_port_from_ula( libspectrum_word port GCC_UNUSED )
@@ -132,6 +146,9 @@ specplus3_765_init( void )
   specplus3_fdc->reset_datarq = NULL;
 
   specplus3_765_update_fdd();
+
+  for( i = 0; i < SPECPLUS3_NUM_DRIVES; i++ )
+    ui_media_drive_register( &ui_drives[ i ] );
 }
 
 void
@@ -593,6 +610,12 @@ fdd_t *
 specplus3_get_fdd( specplus3_drive_number which )
 {
   return &( specplus3_drives[ which ].fdd );
+}
+
+static int
+ui_drive_is_available( void )
+{
+  return machine_current->capabilities & LIBSPECTRUM_MACHINE_CAPABILITY_PLUS3_DISK;
 }
 
 int
