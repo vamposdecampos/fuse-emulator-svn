@@ -470,7 +470,7 @@ specplus3_disk_eject( specplus3_drive_number which )
     switch( confirm ) {
 
     case UI_CONFIRM_SAVE_SAVE:
-      if( specplus3_disk_save( which, 0 ) ) return 1;   /* first save it...*/
+      if( ui_media_drive_save( 0, which, 0 ) ) return 1;   /* first save it...*/
       break;
 
     case UI_CONFIRM_SAVE_DONTSAVE: break;
@@ -484,48 +484,6 @@ specplus3_disk_eject( specplus3_drive_number which )
 
   /* Set the 'eject' item inactive */
   ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_EJECT );
-  return 0;
-}
-
-int
-specplus3_disk_save( specplus3_drive_number which, int saveas )
-{
-  upd_fdc_drive *d;
-
-  if( which >= SPECPLUS3_NUM_DRIVES )
-    return 1;
-
-  d = &specplus3_drives[ which ];
-
-  if( d->disk.type == DISK_TYPE_NONE )
-    return 0;
-
-  if( d->disk.filename == NULL ) saveas = 1;
-  if( ui_plus3_disk_write( which, saveas ) ) return 1;
-  d->disk.dirty = 0;
-  return 0;
-}
-
-int
-specplus3_disk_write( specplus3_drive_number which, const char *filename )
-{
-  upd_fdc_drive *d = &specplus3_drives[ which ];
-  int error;
-
-  d->disk.type = DISK_TYPE_NONE;
-  if( filename == NULL ) filename = d->disk.filename; /* write over original file */
-  error = disk_write( &d->disk, filename );
-
-  if( error != DISK_OK ) {
-    ui_error( UI_ERROR_ERROR, "couldn't write '%s' file: %s", filename,
-	      disk_strerror( error ) );
-    return 1;
-  }
-
-  if( d->disk.filename && strcmp( filename, d->disk.filename ) ) {
-    free( d->disk.filename );
-    d->disk.filename = utils_safe_strdup( filename );
-  }
   return 0;
 }
 
