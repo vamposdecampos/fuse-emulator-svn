@@ -353,24 +353,10 @@ specplus3_memory_map( void )
 void
 specplus3_menu_items( void )
 {
-  const fdd_params_t *dt;
-
-  /* We can eject disks only if they are currently present */
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_EJECT,
-		    specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_FLIP_SET,
-		    !specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_WP_SET,
-		    !specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.wrprot );
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_plus3b_type() ];
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_EJECT,
-		    specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_FLIP_SET,
-		    !specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_WP_SET,
-		    !specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.wrprot );
+  ui_media_drive_update_menus( &ui_drives[ SPECPLUS3_DRIVE_A ],
+			       UI_MEDIA_DRIVE_UPDATE_ALL );
+  ui_media_drive_update_menus( &ui_drives[ SPECPLUS3_DRIVE_B ],
+			       UI_MEDIA_DRIVE_UPDATE_ALL );
 }
 
 libspectrum_byte
@@ -446,22 +432,7 @@ specplus3_disk_insert( specplus3_drive_number which, const char *filename,
   fdd_load( &d->fdd, &d->disk, 0 );
 
   /* Set the 'eject' item active */
-  switch( which ) {
-  case SPECPLUS3_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_EJECT, 1 );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_FLIP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.upsidedown );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_WP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.wrprot );
-    break;
-  case SPECPLUS3_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_EJECT, 1 );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_FLIP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.upsidedown );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_WP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.wrprot );
-    break;
-  }
+  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_ALL );
 
   if( filename && autoload ) {
     /* XXX */
@@ -507,14 +478,7 @@ specplus3_disk_eject( specplus3_drive_number which )
   disk_close( &d->disk );
 
   /* Set the 'eject' item inactive */
-  switch( which ) {
-  case SPECPLUS3_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_EJECT, 0 );
-    break;
-  case SPECPLUS3_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_EJECT, 0 );
-    break;
-  }
+  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_EJECT );
   return 0;
 }
 
@@ -553,16 +517,7 @@ specplus3_disk_flip( specplus3_drive_number which, int flip )
   fdd_flip( &d->fdd, flip );
 
   /* Update the 'flip' menu items */
-  switch( which ) {
-  case SPECPLUS3_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_FLIP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.upsidedown );
-    break;
-  case SPECPLUS3_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_FLIP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.upsidedown );
-    break;
-  }
+  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_FLIP );
   return 0;
 }
 
@@ -582,16 +537,7 @@ specplus3_disk_writeprotect( specplus3_drive_number which, int wrprot )
   fdd_wrprot( &d->fdd, wrprot );
 
   /* Update the 'write protect' menu item */
-  switch( which ) {
-  case SPECPLUS3_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_WP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_A ].fdd.wrprot );
-    break;
-  case SPECPLUS3_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_WP_SET,
-		      !specplus3_drives[ SPECPLUS3_DRIVE_B ].fdd.wrprot );
-    break;
-  }
+  ui_media_drive_update_menus( &ui_drives[ which ], UI_MEDIA_DRIVE_UPDATE_WP );
   return 0;
 }
 
