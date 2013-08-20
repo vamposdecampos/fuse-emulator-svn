@@ -69,6 +69,8 @@ upd_fdc *specplus3_fdc;
 static upd_fdc_drive specplus3_drives[ SPECPLUS3_NUM_DRIVES ];
 
 static int ui_drive_is_available( void );
+static const fdd_params_t *ui_drive_get_params_a( void );
+static const fdd_params_t *ui_drive_get_params_b( void );
 
 static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   {
@@ -81,6 +83,7 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
     /* .menu_item_flip = */ UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_FLIP_SET,
     /* .menu_item_wp = */ UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_WP_SET,
     /* .is_available = */ &ui_drive_is_available,
+    /* .get_params = */ &ui_drive_get_params_a,
   },
   {
     /* .name = */ "+3/Drive B:",
@@ -92,6 +95,7 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
     /* .menu_item_flip = */ UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_FLIP_SET,
     /* .menu_item_wp = */ UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_WP_SET,
     /* .is_available = */ &ui_drive_is_available,
+    /* .get_params = */ &ui_drive_get_params_b,
   },
 };
 
@@ -456,6 +460,18 @@ static int
 ui_drive_is_available( void )
 {
   return machine_current->capabilities & LIBSPECTRUM_MACHINE_CAPABILITY_PLUS3_DISK;
+}
+
+static const fdd_params_t *
+ui_drive_get_params_a( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_plus3a_type() + 1 ];	/* +1 => there is no `Disabled' */
+}
+
+static const fdd_params_t *
+ui_drive_get_params_b( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_plus3b_type() ];
 }
 
 int
