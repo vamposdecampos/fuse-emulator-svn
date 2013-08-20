@@ -46,3 +46,22 @@ ui_media_drive_end( void )
   g_slist_free( registered_drives );
   registered_drives = NULL;
 }
+
+
+static void
+any_available( gpointer data, gpointer user_data )
+{
+  const ui_media_drive_info_t *drive = data;
+  int *res_ptr = user_data;
+
+  if( drive->is_available && drive->is_available() )
+    *res_ptr = 1;
+}
+
+int
+ui_media_drive_any_available( void )
+{
+  gboolean res = 0;
+  g_slist_foreach( registered_drives, any_available, &res );
+  return res;
+}

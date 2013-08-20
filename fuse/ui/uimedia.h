@@ -37,4 +37,6 @@ typedef struct ui_media_drive_info_t
 int ui_media_drive_register( ui_media_drive_info_t *drive );
 void ui_media_drive_end( void );
 
+int ui_media_drive_any_available( void );
+
 #endif			/* #ifndef FUSE_UIMEDIA_H */
