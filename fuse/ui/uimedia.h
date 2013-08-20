@@ -29,9 +29,12 @@
 struct fdd_t;
 struct fdd_params_t;
 struct disk_t;
+struct ui_media_drive_info_t;
 
 typedef int (*ui_media_drive_is_available_fn)( void );
 typedef const struct fdd_params_t* (*ui_media_drive_get_params_fn) ( void );
+typedef int (*ui_media_drive_insert_hook_fn)(
+  const struct ui_media_drive_info_t *drive, int new );
 
 typedef struct ui_media_drive_info_t
 {
@@ -45,6 +48,7 @@ typedef struct ui_media_drive_info_t
   int menu_item_wp;
   ui_media_drive_is_available_fn is_available;
   ui_media_drive_get_params_fn get_params;
+  ui_media_drive_insert_hook_fn insert_hook;
   struct fdd_t *fdd;
   struct disk_t *disk;
 } ui_media_drive_info_t;
@@ -64,6 +68,8 @@ void ui_media_drive_update_parent_menus( void );
 void ui_media_drive_update_menus( const ui_media_drive_info_t *drive, unsigned flags );
 int ui_media_drive_eject_all( void );
 
+int ui_media_drive_insert( const ui_media_drive_info_t *drive,
+  const char *filename, int autoload );
 int ui_media_drive_save( int controller, int which, int saveas );
 int ui_media_drive_eject( int controller, int which );
 int ui_media_drive_flip( int controller, int which, int flip );

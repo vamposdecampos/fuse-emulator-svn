@@ -71,6 +71,7 @@ static upd_fdc_drive specplus3_drives[ SPECPLUS3_NUM_DRIVES ];
 static int ui_drive_is_available( void );
 static const fdd_params_t *ui_drive_get_params_a( void );
 static const fdd_params_t *ui_drive_get_params_b( void );
+static int ui_drive_inserted( const ui_media_drive_info_t *drive, int new );
 
 static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   {
@@ -84,6 +85,7 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
     /* .menu_item_wp = */ UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_WP_SET,
     /* .is_available = */ &ui_drive_is_available,
     /* .get_params = */ &ui_drive_get_params_a,
+    /* .insert_hook = */ &ui_drive_inserted,
   },
   {
     /* .name = */ "+3/Drive B:",
@@ -96,6 +98,7 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
     /* .menu_item_wp = */ UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_WP_SET,
     /* .is_available = */ &ui_drive_is_available,
     /* .get_params = */ &ui_drive_get_params_b,
+    /* .insert_hook = */ &ui_drive_inserted,
   },
 };
 
@@ -472,6 +475,14 @@ static const fdd_params_t *
 ui_drive_get_params_b( void )
 {
   return &fdd_params[ option_enumerate_diskoptions_drive_plus3b_type() ];
+}
+
+static int
+ui_drive_inserted( const ui_media_drive_info_t *drive, int new )
+{
+  if( new )
+    disk_preformat( drive->disk );		/* pre-format disk for +3 */
+  return 0;
 }
 
 int
