@@ -157,8 +157,10 @@ specplus3_765_init( void )
 
   specplus3_765_update_fdd();
 
-  for( i = 0; i < SPECPLUS3_NUM_DRIVES; i++ )
+  for( i = 0; i < SPECPLUS3_NUM_DRIVES; i++ ) {
+    ui_drives[ i ].fdd = &specplus3_drives[ i ].fdd;
     ui_media_drive_register( &ui_drives[ i ] );
+  }
 }
 
 void
