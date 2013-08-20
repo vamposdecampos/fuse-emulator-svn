@@ -73,6 +73,8 @@ static int ui_drive_is_available( void );
 static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   {
     .name = "Drive A:",
+    .controller_index = 0,
+    .drive_index = SPECPLUS3_DRIVE_A,
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUS3,
     .menu_item_top = -1,
     .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_PLUS3_A_EJECT,
@@ -82,6 +84,8 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   },
   {
     .name = "Drive B:",
+    .controller_index = 0,
+    .drive_index = SPECPLUS3_DRIVE_B,
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUS3,
     .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_PLUS3_B,
     .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_PLUS3_B_EJECT,
