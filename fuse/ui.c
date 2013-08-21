@@ -654,18 +654,17 @@ ui_menu_activate( ui_menu_item item, int active )
 void
 ui_menu_disk_update( void )
 {
-  int beta, plusd, opus, disciple;
+  int plusd, opus, disciple;
   int drives_avail;
 
   drives_avail = ui_media_drive_any_available();
 
   /* Set the disk menu items and statusbar appropriately */
-  beta = beta_available;
   opus = opus_available;
   plusd = plusd_available;
   disciple = disciple_available;
 
-  if( drives_avail || beta || opus || plusd || disciple ) {
+  if( drives_avail || opus || plusd || disciple ) {
     ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK, 1 );
     ui_statusbar_update( UI_STATUSBAR_ITEM_DISK, UI_STATUSBAR_STATE_INACTIVE );
   } else {
@@ -674,7 +673,6 @@ ui_menu_disk_update( void )
                          UI_STATUSBAR_STATE_NOT_AVAILABLE );
   }
 
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA, beta );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS, opus );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD, plusd );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE, disciple );
@@ -698,38 +696,6 @@ ui_tape_write( void )
   fuse_emulation_unpause();
 
   return 0;
-}
-
-int
-ui_beta_disk_write( beta_drive_number which, int saveas )
-{
-  int err;
-  char drive, *filename = NULL, title[80];
-
-  switch( which ) {
-    case BETA_DRIVE_A: drive = 'A'; break;
-    case BETA_DRIVE_B: drive = 'B'; break;
-    case BETA_DRIVE_C: drive = 'C'; break;
-    case BETA_DRIVE_D: drive = 'D'; break;
-    default: drive = '?'; break;
-  }
-
-  fuse_emulation_pause();
-
-  snprintf( title, 80, "Fuse - Write Beta Disk %c:", drive );
-
-  if( saveas ) {
-    filename = ui_get_save_filename( title );
-    if( !filename ) { fuse_emulation_unpause(); return 1; }
-  }
-
-  err = beta_disk_write( which, filename );
-
-  if( saveas ) libspectrum_free( filename );
-
-  fuse_emulation_unpause();
-
-  return err;
 }
 
 int

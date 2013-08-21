@@ -419,275 +419,21 @@ int
 beta_disk_insert( beta_drive_number which, const char *filename,
 		      int autoload )
 {
-  int error;
-  wd_fdc_drive *d;
-  const fdd_params_t *dt;
-
   if( which >= BETA_NUM_DRIVES ) {
     ui_error( UI_ERROR_ERROR, "beta_disk_insert: unknown drive %d",
 	      which );
     fuse_abort();
   }
 
-  d = &beta_drives[ which ];
-
-  /* Eject any disk already in the drive */
-  if( d->fdd.loaded ) {
-    /* Abort the insert if we want to keep the current disk */
-    if( beta_disk_eject( which ) ) return 0;
-  }
-
-  if( filename ) {
-    error = disk_open( &d->disk, filename, 0, DISK_TRY_MERGE( d->fdd.fdd_heads ) );
-    if( error != DISK_OK ) {
-      ui_error( UI_ERROR_ERROR, "Failed to open disk image: %s",
-				disk_strerror( d->disk.status ) );
-      return 1;
-    }
-  } else {
-    switch( which ) {
-    case 0:
-      dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128a_type() + 1 ];	/* +1 => there is no `Disabled' */
-      break;
-    case 1:
-      dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128b_type() ];
-      break;
-    case 2:
-      dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128c_type() ];
-      break;
-    case 3:
-    default:
-      dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128d_type() ];
-      break;
-    }
-    error = disk_new( &d->disk, dt->heads, dt->cylinders, DISK_DENS_AUTO, DISK_UDI );
-    if( error != DISK_OK ) {
-      ui_error( UI_ERROR_ERROR, "Failed to create disk image: %s",
-				disk_strerror( d->disk.status ) );
-      return 1;
-    }
-  }
-
-  fdd_load( &d->fdd, &d->disk, 0 );
-
-  /* Set the 'eject' item active */
-  switch( which ) {
-  case BETA_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_EJECT, 1 );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_A ].fdd.upsidedown );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_WP_SET,
-		      !beta_drives[ BETA_DRIVE_A ].fdd.wrprot );
-    break;
-  case BETA_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_EJECT, 1 );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_B ].fdd.upsidedown );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_WP_SET,
-		      !beta_drives[ BETA_DRIVE_B ].fdd.wrprot );
-    break;
-  case BETA_DRIVE_C:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_EJECT, 1 );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_C ].fdd.upsidedown );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_WP_SET,
-		      !beta_drives[ BETA_DRIVE_C ].fdd.wrprot );
-    break;
-  case BETA_DRIVE_D:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_EJECT, 1 );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_D ].fdd.upsidedown );
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_WP_SET,
-		      !beta_drives[ BETA_DRIVE_D ].fdd.wrprot );
-    break;
-  }
-
-  if( filename && autoload ) {
-    PC = 0;
-    machine_current->ram.last_byte |= 0x10;   /* Select ROM 1 */
-    beta_page();
-  }
-
-  return 0;
+  return ui_media_drive_insert( &beta_ui_drives[ which ], filename, autoload );
 }
 
-int
-beta_disk_flip( beta_drive_number which, int flip )
+static int
+ui_drive_autoload( void )
 {
-  wd_fdc_drive *d;
-
-  if( which >= BETA_NUM_DRIVES )
-    return 1;
-
-  d = &beta_drives[ which ];
-
-  if( !d->fdd.loaded )
-    return 1;
-
-  fdd_flip( &d->fdd, flip );
-
-  /* Set the 'flip' item */
-  switch( which ) {
-  case BETA_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_A ].fdd.upsidedown );
-    break;
-  case BETA_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_B ].fdd.upsidedown );
-    break;
-  case BETA_DRIVE_C:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_C ].fdd.upsidedown );
-    break;
-  case BETA_DRIVE_D:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_FLIP_SET,
-		      !beta_drives[ BETA_DRIVE_D ].fdd.upsidedown );
-    break;
-  }
-  return 0;
-}
-
-int
-beta_disk_writeprotect( beta_drive_number which, int wrprot )
-{
-  wd_fdc_drive *d;
-
-  if( which >= BETA_NUM_DRIVES )
-    return 1;
-
-  d = &beta_drives[ which ];
-
-  if( !d->fdd.loaded )
-    return 1;
-
-  fdd_wrprot( &d->fdd, wrprot );
-
-  /* Set the 'writeprotect' item */
-  switch( which ) {
-  case BETA_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_WP_SET,
-		      !beta_drives[ BETA_DRIVE_A ].fdd.wrprot );
-    break;
-  case BETA_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_WP_SET,
-		      !beta_drives[ BETA_DRIVE_B ].fdd.wrprot );
-    break;
-  case BETA_DRIVE_C:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_WP_SET,
-		      !beta_drives[ BETA_DRIVE_C ].fdd.wrprot );
-    break;
-  case BETA_DRIVE_D:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_WP_SET,
-		      !beta_drives[ BETA_DRIVE_D ].fdd.wrprot );
-    break;
-  }
-  return 0;
-}
-
-int
-beta_disk_eject( beta_drive_number which )
-{
-  wd_fdc_drive *d;
-  char drive;
-
-  if( which >= BETA_NUM_DRIVES )
-    return 1;
-
-  d = &beta_drives[ which ];
-
-  if( !d->fdd.loaded )
-    return 0;
-
-  if( d->disk.dirty ) {
-    ui_confirm_save_t confirm;
-
-    switch( which ) {
-      case BETA_DRIVE_A: drive = 'A'; break;
-      case BETA_DRIVE_B: drive = 'B'; break;
-      case BETA_DRIVE_C: drive = 'C'; break;
-      case BETA_DRIVE_D: drive = 'D'; break;
-      default: drive = '?'; break;
-    }
-
-    confirm = ui_confirm_save(
-      "Disk in Beta drive %c: has been modified.\n"
-      "Do you want to save it?",
-      drive
-    );
-
-    switch( confirm ) {
-
-    case UI_CONFIRM_SAVE_SAVE:
-      if( beta_disk_save( which, 0 ) ) return 1;	/* first save */
-      break;
-
-    case UI_CONFIRM_SAVE_DONTSAVE: break;
-    case UI_CONFIRM_SAVE_CANCEL: return 1;
-
-    }
-  }
-
-  fdd_unload( &d->fdd );
-  disk_close( &d->disk );
-
-  /* Set the 'eject' item inactive */
-  switch( which ) {
-  case BETA_DRIVE_A:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_EJECT, 0 );
-    break;
-  case BETA_DRIVE_B:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_EJECT, 0 );
-    break;
-  case BETA_DRIVE_C:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_EJECT, 0 );
-    break;
-  case BETA_DRIVE_D:
-    ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_EJECT, 0 );
-    break;
-  }
-  return 0;
-}
-
-int
-beta_disk_save( beta_drive_number which, int saveas )
-{
-  wd_fdc_drive *d;
-
-  if( which >= BETA_NUM_DRIVES )
-    return 1;
-
-  d = &beta_drives[ which ];
-
-  if( !d->fdd.loaded )
-    return 0;
-
-  if( d->disk.filename == NULL ) saveas = 1;
-  if( ui_beta_disk_write( which, saveas ) ) return 1;
-  d->disk.dirty = 0;
-  return 0;
-}
-
-int
-beta_disk_write( beta_drive_number which, const char *filename )
-{
-  wd_fdc_drive *d = &beta_drives[ which ];
-  int error;
-
-  d->disk.type = DISK_TYPE_NONE;
-  if( filename == NULL ) filename = d->disk.filename;	/* write over original file */
-  error = disk_write( &d->disk, filename );
-
-  if( error != DISK_OK ) {
-    ui_error( UI_ERROR_ERROR, "couldn't write '%s' file: %s", filename,
-	      disk_strerror( error ) );
-    return 1;
-  }
-
-  if( d->disk.filename && strcmp( filename, d->disk.filename ) ) {
-    free( d->disk.filename );
-    d->disk.filename = utils_safe_strdup( filename );
-  }
+  PC = 0;
+  machine_current->ram.last_byte |= 0x10;   /* Select ROM 1 */
+  beta_page();
   return 0;
 }
 
@@ -876,6 +622,7 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_A_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_a,
+    .autoload_hook = &ui_drive_autoload,
   },
   {
     .name = "Beta/Drive B:",
@@ -888,6 +635,7 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_B_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_b,
+    .autoload_hook = &ui_drive_autoload,
   },
   {
     .name = "Beta/Drive C:",
@@ -900,6 +648,7 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_C_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_c,
+    .autoload_hook = &ui_drive_autoload,
   },
   {
     .name = "Beta/Drive D:",
@@ -912,5 +661,6 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_D_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_d,
+    .autoload_hook = &ui_drive_autoload,
   },
 };
