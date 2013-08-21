@@ -654,17 +654,16 @@ ui_menu_activate( ui_menu_item item, int active )
 void
 ui_menu_disk_update( void )
 {
-  int plusd, opus, disciple;
+  int opus, disciple;
   int drives_avail;
 
   drives_avail = ui_media_drive_any_available();
 
   /* Set the disk menu items and statusbar appropriately */
   opus = opus_available;
-  plusd = plusd_available;
   disciple = disciple_available;
 
-  if( drives_avail || opus || plusd || disciple ) {
+  if( drives_avail || opus || disciple ) {
     ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK, 1 );
     ui_statusbar_update( UI_STATUSBAR_ITEM_DISK, UI_STATUSBAR_STATE_INACTIVE );
   } else {
@@ -674,7 +673,6 @@ ui_menu_disk_update( void )
   }
 
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS, opus );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD, plusd );
   ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE, disciple );
   ui_media_drive_update_parent_menus();
 }
@@ -720,36 +718,6 @@ ui_opus_disk_write( opus_drive_number which, int saveas )
   }
 
   err = opus_disk_write( which, filename );
-
-  if( saveas ) libspectrum_free( filename );
-
-  fuse_emulation_unpause();
-
-  return err;
-}
-
-int
-ui_plusd_disk_write( plusd_drive_number which, int saveas )
-{
-  int err;
-  char drive, *filename = NULL, title[80];
-
-  switch( which ) {
-    case PLUSD_DRIVE_1: drive = '1'; break;
-    case PLUSD_DRIVE_2: drive = '2'; break;
-    default: drive = '?'; break;
-  }
-
-  fuse_emulation_pause();
-
-  snprintf( title, 80, "Fuse - Write +D Disk %c", drive );
-
-  if( saveas ) {
-    filename = ui_get_save_filename( title );
-    if( !filename ) { fuse_emulation_unpause(); return 1; }
-  }
-
-  err = plusd_disk_write( which, filename );
 
   if( saveas ) libspectrum_free( filename );
 
