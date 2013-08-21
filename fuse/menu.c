@@ -376,9 +376,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
   case 3:
     if1_mdr_insert( which, NULL );
     break;
-  case 4:
-    opus_disk_insert( which, NULL, 0 );
-    break;
   case 5:
     disciple_disk_insert( which, NULL, 0 );
     break;
@@ -408,9 +405,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   case 3:
     snprintf( title, 80, "Fuse - Insert Microdrive Cartridge %i", which + 1 );
     break;
-  case 4:
-    snprintf( title, 80, "Fuse - Insert Opus Disk %i", which + 1 );
-    break;
   case 5:
     snprintf( title, 80, "Fuse - Insert DISCiPLE Disk %i", which + 1 );
     break;
@@ -427,9 +421,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   switch( type ) {
   case 3:
     if1_mdr_insert( which, filename );
-    break;
-  case 4:
-    opus_disk_insert( which, filename, 0 );
     break;
   case 5:
     disciple_disk_insert( which, filename, 0 );
@@ -458,9 +449,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_eject )
   case 3:
     if1_mdr_eject( which );
     break;
-  case 4:
-    opus_disk_eject( which );
-    break;
   case 5:
     disciple_disk_eject( which );
     break;
@@ -485,9 +473,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_save )
   case 3:
     if1_mdr_save( which, saveas );
     break;
-  case 4:
-    opus_disk_save( which, saveas );
-    break;
   case 5:
     disciple_disk_save( which, saveas );
     break;
@@ -510,9 +495,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_flip )
 
   switch( type ) {
   /* No flip option for IF1 */
-  case 4:
-    opus_disk_flip( which, flip );
-    break;
   case 5:
     disciple_disk_flip( which, flip );
     break;
@@ -536,9 +518,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_writeprotect )
   switch( type ) {
   case 3:
     if1_mdr_writeprotect( which, wrprot );
-    break;
-  case 4:
-    opus_disk_writeprotect( which, wrprot );
     break;
   case 5:
     disciple_disk_writeprotect( which, wrprot );
@@ -878,12 +857,6 @@ menu_check_media_changed( void )
   confirm = tape_close(); if( confirm ) return 1;
 
   confirm = ui_media_drive_eject_all();
-  if( confirm ) return 1;
-
-  confirm = opus_disk_eject( OPUS_DRIVE_1 );
-  if( confirm ) return 1;
-
-  confirm = opus_disk_eject( OPUS_DRIVE_2 );
   if( confirm ) return 1;
 
   confirm = disciple_disk_eject( DISCIPLE_DRIVE_1 );
