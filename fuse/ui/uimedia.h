@@ -75,4 +75,14 @@ int ui_media_drive_eject( int controller, int which );
 int ui_media_drive_flip( int controller, int which, int flip );
 int ui_media_drive_writeprotect( int controller, int which, int wrprot );
 
+/* These are (also) used in media menu items */
+typedef enum ui_media_controller {
+  UI_MEDIA_CONTROLLER_PLUS3,
+  UI_MEDIA_CONTROLLER_BETA,
+  UI_MEDIA_CONTROLLER_PLUSD,
+  UI_MEDIA_CONTROLLER_MDR,
+  UI_MEDIA_CONTROLLER_OPUS,
+  UI_MEDIA_CONTROLLER_DISCIPLE,
+} ui_media_controller;
+
 #endif			/* #ifndef FUSE_UIMEDIA_H */
