@@ -352,8 +352,8 @@ ui_media_drive_insert( const ui_media_drive_info_t *drive,
   /* Set the 'eject' item active */
   ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_ALL );
 
-  if( filename && autoload ) {
-    /* XXX */
+  if( filename && autoload && drive->autoload_hook ) {
+    return drive->autoload_hook();
   }
 
   return 0;

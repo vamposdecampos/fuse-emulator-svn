@@ -35,6 +35,7 @@ typedef int (*ui_media_drive_is_available_fn)( void );
 typedef const struct fdd_params_t* (*ui_media_drive_get_params_fn) ( void );
 typedef int (*ui_media_drive_insert_hook_fn)(
   const struct ui_media_drive_info_t *drive, int new );
+typedef int (*ui_media_drive_autoload_hook_fn)( void );
 
 typedef struct ui_media_drive_info_t
 {
@@ -49,6 +50,7 @@ typedef struct ui_media_drive_info_t
   ui_media_drive_is_available_fn is_available;
   ui_media_drive_get_params_fn get_params;
   ui_media_drive_insert_hook_fn insert_hook;
+  ui_media_drive_autoload_hook_fn autoload_hook;
   struct fdd_t *fdd;
   struct disk_t *disk;
 } ui_media_drive_info_t;
