@@ -39,6 +39,7 @@
 #include "plusd.h"
 #include "settings.h"
 #include "ui/ui.h"
+#include "ui/uimedia.h"
 #include "unittests/unittests.h"
 #include "utils.h"
 #include "wd_fdc.h"
@@ -63,6 +64,7 @@ static int index_event;
 
 static wd_fdc *plusd_fdc;
 static wd_fdc_drive plusd_drives[ PLUSD_NUM_DRIVES ];
+static ui_media_drive_info_t plusd_ui_drives[ PLUSD_NUM_DRIVES ];
 
 static libspectrum_byte *plusd_ram;
 static int memory_allocated = 0;
@@ -174,6 +176,13 @@ plusd_init( void )
     plusd_memory_map_romcs_ram[ i ].source = plusd_memory_source;
 
   periph_register( PERIPH_TYPE_PLUSD, &plusd_periph );
+
+  for( i = 0; i < PLUSD_NUM_DRIVES; i++ ) {
+    d = &plusd_drives[ i ];
+    plusd_ui_drives[ i ].fdd = &d->fdd;
+    plusd_ui_drives[ i ].disk = &d->disk;
+    ui_media_drive_register( &plusd_ui_drives[ i ] );
+  }
 }
 
 static void
@@ -747,3 +756,48 @@ plusd_unittest( void )
 
   return r;
 }
+
+static int
+ui_drive_is_available( void )
+{
+  return plusd_available;
+}
+
+static const fdd_params_t *
+ui_drive_get_params_1( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_plusd1_type() + 1 ];	/* +1 => there is no `Disabled' */
+}
+
+static const fdd_params_t *
+ui_drive_get_params_2( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_plusd2_type() ];
+}
+
+static ui_media_drive_info_t plusd_ui_drives[ PLUSD_NUM_DRIVES ] = {
+  {
+    .name = "+D/Drive 1",
+    .controller_index = UI_MEDIA_CONTROLLER_PLUSD,
+    .drive_index = PLUSD_DRIVE_1,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUSD,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_PLUSD_1,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_PLUSD_1_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_PLUSD_1_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_PLUSD_1_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_1,
+  },
+  {
+    .name = "+D/Drive 2",
+    .controller_index = UI_MEDIA_CONTROLLER_PLUSD,
+    .drive_index = PLUSD_DRIVE_2,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUSD,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_PLUSD_2,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_PLUSD_2_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_PLUSD_2_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_PLUSD_2_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_2,
+  },
+};
