@@ -48,6 +48,7 @@
 #include "module.h"
 #include "settings.h"
 #include "ui/ui.h"
+#include "ui/uimedia.h"
 #include "unittests/unittests.h"
 #include "utils.h"
 #include "wd_fdc.h"
@@ -79,6 +80,7 @@ static int index_event;
 
 static wd_fdc *beta_fdc;
 static wd_fdc_drive beta_drives[ BETA_NUM_DRIVES ];
+static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ];
 
 static const periph_port_t beta_ports[] = {
   { 0x00ff, 0x001f, beta_sr_read, beta_cr_write },
@@ -180,6 +182,13 @@ beta_init( void )
     beta_memory_map_romcs[i].source = beta_memory_source;
 
   periph_register( PERIPH_TYPE_BETA128, &beta_peripheral );
+
+  for( i = 0; i < BETA_NUM_DRIVES; i++ ) {
+    d = &beta_drives[ i ];
+    beta_ui_drives[ i ].fdd = &d->fdd;
+    beta_ui_drives[ i ].disk = &d->disk;
+    ui_media_drive_register( &beta_ui_drives[ i ] );
+  }
 }
 
 static void
@@ -825,3 +834,83 @@ beta_unittest( void )
   return r;
 }
 
+static int
+ui_drive_is_available( void )
+{
+  return beta_available;
+}
+
+static const fdd_params_t *
+ui_drive_get_params_a( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_beta128a_type() + 1 ];	/* +1 => there is no `Disabled' */
+}
+
+static const fdd_params_t *
+ui_drive_get_params_b( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_beta128b_type() ];
+}
+
+static const fdd_params_t *
+ui_drive_get_params_c( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_beta128c_type() ];
+}
+
+static const fdd_params_t *
+ui_drive_get_params_d( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_beta128d_type() ];
+}
+
+static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
+  {
+    .name = "Beta/Drive A:",
+    .controller_index = UI_MEDIA_CONTROLLER_BETA,
+    .drive_index = BETA_DRIVE_A,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_BETA,
+    .menu_item_top = UI_MENU_ITEM_INVALID,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_BETA_A_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_BETA_A_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_A_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_a,
+  },
+  {
+    .name = "Beta/Drive B:",
+    .controller_index = UI_MEDIA_CONTROLLER_BETA,
+    .drive_index = BETA_DRIVE_B,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_BETA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_BETA_B,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_BETA_B_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_BETA_B_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_B_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_b,
+  },
+  {
+    .name = "Beta/Drive C:",
+    .controller_index = UI_MEDIA_CONTROLLER_BETA,
+    .drive_index = BETA_DRIVE_C,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_BETA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_BETA_C,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_BETA_C_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_BETA_C_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_C_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_c,
+  },
+  {
+    .name = "Beta/Drive D:",
+    .controller_index = UI_MEDIA_CONTROLLER_BETA,
+    .drive_index = BETA_DRIVE_D,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_BETA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_BETA_D,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_BETA_D_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_BETA_D_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_BETA_D_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_d,
+  },
+};
