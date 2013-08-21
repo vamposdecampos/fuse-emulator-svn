@@ -42,6 +42,12 @@
 
 static GSList *registered_drives = NULL;
 
+static inline int
+menu_item_valid( ui_menu_item item )
+{
+  return item != UI_MENU_ITEM_INVALID;
+}
+
 int
 ui_media_drive_register( ui_media_drive_info_t *drive )
 {
@@ -106,7 +112,7 @@ update_parent_menus( gpointer data, gpointer user_data )
 {
   const ui_media_drive_info_t *drive = data;
 
-  if( drive->is_available && drive->menu_item_parent >= 0 )
+  if( drive->is_available && menu_item_valid( drive->menu_item_parent ) )
     ui_menu_activate( drive->menu_item_parent, drive->is_available() );
 }
 
@@ -119,7 +125,7 @@ ui_media_drive_update_parent_menus( void )
 static int
 maybe_menu_activate( int id, int activate )
 {
-  if( id < 0 )
+  if( !menu_item_valid( id ) )
     return 0;
   return ui_menu_activate( id, activate );
 }
