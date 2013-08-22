@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "module.h"
+#include "options.h"
 #include "periph.h"
 #include "peripherals/cobra_fdc.h"
 #include "peripherals/disk/fdd.h"
@@ -161,6 +162,8 @@ cobra_fdc_reset_intrq( upd_fdc *f )
 void
 cobra_fdc_reset( int hard )
 {
+  const fdd_params_t *dt;
+
   dbg( "called hard=%d", hard );
   cobra_fdc_available = 0;
   if( !periph_is_active( PERIPH_TYPE_COBRA_FDC ) )
@@ -168,6 +171,15 @@ cobra_fdc_reset( int hard )
 
   memset(cobra_ctc, 0, sizeof(cobra_ctc));
   upd_fdc_master_reset( cobra_fdc );
+
+  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_a_type() ];
+  fdd_init( &cobra_drives[ 0 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_b_type() ];
+  fdd_init( &cobra_drives[ 1 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_c_type() ];
+  fdd_init( &cobra_drives[ 2 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_d_type() ];
+  fdd_init( &cobra_drives[ 3 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
 
   cobra_fdc_available = 1;
   dbg( "active" );
