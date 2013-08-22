@@ -187,6 +187,17 @@ cobra_fdc_reset( int hard )
   dbg( "active" );
 }
 
+int
+cobra_fdc_insert( cobra_drive_number which, const char *filename, int autoload )
+{
+  if( which >= COBRA_NUM_DRIVES ) {
+    ui_error( UI_ERROR_ERROR, "cobra_fdc_insert: unknown drive %d", which );
+    fuse_abort(  );
+  }
+
+  return ui_media_drive_insert( &cobra_ui_drives[ which ], filename, autoload );
+}
+
 fdd_t *cobra_get_fdd(cobra_drive_number which)
 {
   return &cobra_drives[which].fdd;

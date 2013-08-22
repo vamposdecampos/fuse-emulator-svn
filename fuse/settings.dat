@@ -155,6 +155,7 @@ betadisk_file, string, NULL,, betadisk
 dck_file, string, NULL,, dock
 if2_file, string, NULL,, if2cart
 if1disk_file, string, NULL,, if1disk
+cobradisk_file, string, NULL,, cobradisk
 
 mdr_file, string, NULL,, microdrive-file
 mdr_file2, string, NULL,, microdrive-2-file

@@ -40,6 +40,7 @@ typedef enum cobra_drive_number {
 int cobra_fdc_available;
 
 void cobra_fdc_init(void);
+int cobra_fdc_insert(cobra_drive_number which, const char *filename, int autoload);
 fdd_t *cobra_get_fdd(cobra_drive_number which);
 
 #endif				/* #ifndef FUSE_COBRA_FDC_H */
