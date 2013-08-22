@@ -376,9 +376,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
   case 3:
     if1_mdr_insert( which, NULL );
     break;
-  case 5:
-    disciple_disk_insert( which, NULL, 0 );
-    break;
   default:
     drive = ui_media_drive_find( type, which );
     if( !drive )
@@ -405,9 +402,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   case 3:
     snprintf( title, 80, "Fuse - Insert Microdrive Cartridge %i", which + 1 );
     break;
-  case 5:
-    snprintf( title, 80, "Fuse - Insert DISCiPLE Disk %i", which + 1 );
-    break;
   default:
     drive = ui_media_drive_find( type, which );
     if( !drive )
@@ -421,9 +415,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   switch( type ) {
   case 3:
     if1_mdr_insert( which, filename );
-    break;
-  case 5:
-    disciple_disk_insert( which, filename, 0 );
     break;
   default:
     ui_media_drive_insert( drive, filename, 0 );
@@ -449,9 +440,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_eject )
   case 3:
     if1_mdr_eject( which );
     break;
-  case 5:
-    disciple_disk_eject( which );
-    break;
   default:
     ui_media_drive_eject( type, which );
     break;
@@ -473,9 +461,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_save )
   case 3:
     if1_mdr_save( which, saveas );
     break;
-  case 5:
-    disciple_disk_save( which, saveas );
-    break;
   default:
     ui_media_drive_save( type, which, saveas );
     break;
@@ -495,9 +480,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_flip )
 
   switch( type ) {
   /* No flip option for IF1 */
-  case 5:
-    disciple_disk_flip( which, flip );
-    break;
   default:
     ui_media_drive_flip( type, which, flip );
     break;
@@ -518,9 +500,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_writeprotect )
   switch( type ) {
   case 3:
     if1_mdr_writeprotect( which, wrprot );
-    break;
-  case 5:
-    disciple_disk_writeprotect( which, wrprot );
     break;
   default:
     ui_media_drive_writeprotect( type, which, wrprot );
@@ -857,12 +836,6 @@ menu_check_media_changed( void )
   confirm = tape_close(); if( confirm ) return 1;
 
   confirm = ui_media_drive_eject_all();
-  if( confirm ) return 1;
-
-  confirm = disciple_disk_eject( DISCIPLE_DRIVE_1 );
-  if( confirm ) return 1;
-
-  confirm = disciple_disk_eject( DISCIPLE_DRIVE_2 );
   if( confirm ) return 1;
 
   for( i = 0; i < 8; i++ ) {
