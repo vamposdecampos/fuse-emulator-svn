@@ -179,7 +179,9 @@ cobra_fdc_reset( int hard )
   for( i = 0; i < COBRA_NUM_DRIVES; i++ ) {
     ui_media_drive_info_t *drive = &cobra_ui_drives[ i ];
     dt = drive->get_params();
+    fdd_motoron( drive->fdd, 0 );
     fdd_init( drive->fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+    fdd_motoron( drive->fdd, 1 );
     ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_ALL );
   }
 
@@ -320,6 +322,16 @@ ui_drive_get_params_d( void )
   return &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_d_type() ];
 }
 
+static int
+ui_drive_inserted( const ui_media_drive_info_t *drive, int new, int loaded )
+{
+  if( loaded ) {
+    fdd_motoron( drive->fdd, 0 );
+    fdd_motoron( drive->fdd, 1 );
+  }
+  return 0;
+}
+
 static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ] = {
   {
     .name = "CoBra/Drive A:",
@@ -332,6 +344,7 @@ static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_A_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_a,
+    .insert_hook = &ui_drive_inserted,
   },
   {
     .name = "CoBra/Drive B:",
@@ -344,6 +357,7 @@ static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_B_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_b,
+    .insert_hook = &ui_drive_inserted,
   },
   {
     .name = "CoBra/Drive C:",
@@ -356,6 +370,7 @@ static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_C_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_c,
+    .insert_hook = &ui_drive_inserted,
   },
   {
     .name = "CoBra/Drive D:",
@@ -368,6 +383,7 @@ static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ] = {
     .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_D_WP_SET,
     .is_available = &ui_drive_is_available,
     .get_params = &ui_drive_get_params_d,
+    .insert_hook = &ui_drive_inserted,
   },
 };
 
