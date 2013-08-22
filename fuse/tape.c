@@ -598,6 +598,9 @@ trap_check_rom( void )
     /* OK if we're in ROM 1 and the Beta disk interface is not active */
     return( machine_current->ram.current_rom == 1 && !beta_active );
 
+  case LIBSPECTRUM_MACHINE_HC2000:
+    return( machine_current->ram.current_rom == 0 );
+
   case LIBSPECTRUM_MACHINE_UNKNOWN:	/* should never happen */
     ui_error( UI_ERROR_ERROR,
 	      "trap_check_rom: machine type is LIBSPECTRUM_MACHINE_UNKNOWN" );
