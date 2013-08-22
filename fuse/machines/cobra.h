@@ -42,11 +42,4 @@ libspectrum_byte cobra_ula_read( libspectrum_word port, int *attached );
 void cobra_ula_write( libspectrum_word port, libspectrum_byte b );
 void rfsh_check_page( libspectrum_byte R7 );
 
-libspectrum_byte cobra_mach_ctc_read( libspectrum_word port, int *attached );
-void cobra_mach_ctc_write( libspectrum_word port, libspectrum_byte b );
-
-libspectrum_byte cobra_mach_fdc_read( libspectrum_word port, int *attached );
-libspectrum_byte cobra_mach_fdc_status( libspectrum_word port, int *attached );
-void cobra_mach_fdc_write( libspectrum_word port, libspectrum_byte b );
-
 #endif			/* #ifndef FUSE_COBRA_H */
