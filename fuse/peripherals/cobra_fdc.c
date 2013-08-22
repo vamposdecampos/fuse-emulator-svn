@@ -33,6 +33,8 @@
 #include "peripherals/disk/fdd.h"
 #include "peripherals/disk/upd_fdc.h"
 #include "settings.h"
+#include "ui/ui.h"
+#include "ui/uimedia.h"
 
 #if 1
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
@@ -53,6 +55,7 @@ struct cobra_ctc {
 
 static upd_fdc *cobra_fdc;
 static upd_fdc_drive cobra_drives[COBRA_NUM_DRIVES];
+static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ];
 static struct cobra_ctc cobra_ctc[4];
 int cobra_fdc_available;
 
@@ -163,6 +166,7 @@ void
 cobra_fdc_reset( int hard )
 {
   const fdd_params_t *dt;
+  int i;
 
   dbg( "called hard=%d", hard );
   cobra_fdc_available = 0;
@@ -172,14 +176,12 @@ cobra_fdc_reset( int hard )
   memset(cobra_ctc, 0, sizeof(cobra_ctc));
   upd_fdc_master_reset( cobra_fdc );
 
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_a_type() ];
-  fdd_init( &cobra_drives[ 0 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_b_type() ];
-  fdd_init( &cobra_drives[ 1 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_c_type() ];
-  fdd_init( &cobra_drives[ 2 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_d_type() ];
-  fdd_init( &cobra_drives[ 3 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+  for( i = 0; i < COBRA_NUM_DRIVES; i++ ) {
+    ui_media_drive_info_t *drive = &cobra_ui_drives[ i ];
+    dt = drive->get_params();
+    fdd_init( drive->fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
+    ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_ALL );
+  }
 
   cobra_fdc_available = 1;
   dbg( "active" );
@@ -254,6 +256,8 @@ static module_info_t cobra_fdc_module = {
 void
 cobra_fdc_init( void )
 {
+  int i;
+
   cobra_fdc = upd_fdc_alloc_fdc( UPD765A, UPD_CLOCK_8MHZ );
   cobra_fdc->drive[0] = &cobra_drives[0];
   cobra_fdc->drive[1] = &cobra_drives[1];
@@ -264,11 +268,95 @@ cobra_fdc_init( void )
   cobra_fdc->set_datarq = NULL;
   cobra_fdc->reset_datarq = NULL;
 
-  fdd_init( &cobra_drives[0].fdd, FDD_SHUGART, &fdd_params[4], 0 );
-  fdd_init( &cobra_drives[1].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
-  fdd_init( &cobra_drives[2].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
-  fdd_init( &cobra_drives[3].fdd, FDD_TYPE_NONE, NULL, 0 ); /* drive geometry 'autodetect' */
+  for( i = 0; i < COBRA_NUM_DRIVES; i++ ) {
+    fdd_init( &cobra_drives[ i ].fdd, FDD_SHUGART, NULL, 0 );
+    cobra_ui_drives[ i ].fdd = &cobra_drives[ i ].fdd;
+    cobra_ui_drives[ i ].disk = &cobra_drives[ i ].disk;
+    ui_media_drive_register( &cobra_ui_drives[ i ] );
+  }
 
   module_register( &cobra_fdc_module );
   periph_register( PERIPH_TYPE_COBRA_FDC, &cobra_fdc_periph );
 }
+
+static int
+ui_drive_is_available( void )
+{
+  return cobra_fdc_available;
+}
+
+static const fdd_params_t *
+ui_drive_get_params_a( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_a_type() ];
+}
+
+static const fdd_params_t *
+ui_drive_get_params_b( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_b_type() ];
+}
+
+static const fdd_params_t *
+ui_drive_get_params_c( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_c_type() ];
+}
+
+static const fdd_params_t *
+ui_drive_get_params_d( void )
+{
+  return &fdd_params[ option_enumerate_diskoptions_drive_cobra_fdc_d_type() ];
+}
+
+static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ] = {
+  {
+    .name = "CoBra/Drive A:",
+    .controller_index = UI_MEDIA_CONTROLLER_COBRA,
+    .drive_index = BETA_DRIVE_A,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_COBRA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_COBRA_A,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_COBRA_A_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_COBRA_A_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_A_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_a,
+  },
+  {
+    .name = "CoBra/Drive B:",
+    .controller_index = UI_MEDIA_CONTROLLER_COBRA,
+    .drive_index = BETA_DRIVE_B,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_COBRA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_COBRA_B,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_COBRA_B_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_COBRA_B_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_B_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_b,
+  },
+  {
+    .name = "CoBra/Drive C:",
+    .controller_index = UI_MEDIA_CONTROLLER_COBRA,
+    .drive_index = BETA_DRIVE_C,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_COBRA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_COBRA_C,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_COBRA_C_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_COBRA_C_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_C_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_c,
+  },
+  {
+    .name = "CoBra/Drive D:",
+    .controller_index = UI_MEDIA_CONTROLLER_COBRA,
+    .drive_index = BETA_DRIVE_D,
+    .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_COBRA,
+    .menu_item_top = UI_MENU_ITEM_MEDIA_DISK_COBRA_D,
+    .menu_item_eject = UI_MENU_ITEM_MEDIA_DISK_COBRA_D_EJECT,
+    .menu_item_flip = UI_MENU_ITEM_MEDIA_DISK_COBRA_D_FLIP_SET,
+    .menu_item_wp = UI_MENU_ITEM_MEDIA_DISK_COBRA_D_WP_SET,
+    .is_available = &ui_drive_is_available,
+    .get_params = &ui_drive_get_params_d,
+  },
+};
+
