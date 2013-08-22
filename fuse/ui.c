@@ -654,15 +654,13 @@ ui_menu_activate( ui_menu_item item, int active )
 void
 ui_menu_disk_update( void )
 {
-  int disciple;
   int drives_avail;
 
   drives_avail = ui_media_drive_any_available();
 
   /* Set the disk menu items and statusbar appropriately */
-  disciple = disciple_available;
 
-  if( drives_avail || disciple ) {
+  if( drives_avail ) {
     ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK, 1 );
     ui_statusbar_update( UI_STATUSBAR_ITEM_DISK, UI_STATUSBAR_STATE_INACTIVE );
   } else {
@@ -671,7 +669,6 @@ ui_menu_disk_update( void )
                          UI_STATUSBAR_STATE_NOT_AVAILABLE );
   }
 
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE, disciple );
   ui_media_drive_update_parent_menus();
 }
 
@@ -692,36 +689,6 @@ ui_tape_write( void )
   fuse_emulation_unpause();
 
   return 0;
-}
-
-int
-ui_disciple_disk_write( disciple_drive_number which, int saveas )
-{
-  int err;
-  char drive, *filename = NULL, title[80];
-
-  switch( which ) {
-    case PLUSD_DRIVE_1: drive = '1'; break;
-    case PLUSD_DRIVE_2: drive = '2'; break;
-    default: drive = '?'; break;
-  }
-
-  fuse_emulation_pause();
-
-  snprintf( title, 80, "Fuse - Write DISCiPLE Disk %c", drive );
-
-  if( saveas ) {
-    filename = ui_get_save_filename( title );
-    if( !filename ) { fuse_emulation_unpause(); return 1; }
-  }
-
-  err = disciple_disk_write( which, filename );
-
-  if( saveas ) libspectrum_free( filename );
-
-  fuse_emulation_unpause();
-
-  return err;
 }
 
 int
