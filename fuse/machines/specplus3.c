@@ -71,7 +71,7 @@ static upd_fdc_drive specplus3_drives[ SPECPLUS3_NUM_DRIVES ];
 static int ui_drive_is_available( void );
 static const fdd_params_t *ui_drive_get_params_a( void );
 static const fdd_params_t *ui_drive_get_params_b( void );
-static int ui_drive_inserted( const ui_media_drive_info_t *drive, int new );
+static int ui_drive_inserted( const ui_media_drive_info_t *drive, int new, int loaded );
 
 static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   {
@@ -431,9 +431,9 @@ ui_drive_get_params_b( void )
 }
 
 static int
-ui_drive_inserted( const ui_media_drive_info_t *drive, int new )
+ui_drive_inserted( const ui_media_drive_info_t *drive, int new, int loaded )
 {
-  if( new )
+  if( new && !loaded )
     disk_preformat( drive->disk );		/* pre-format disk for +3 */
   return 0;
 }

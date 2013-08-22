@@ -342,12 +342,18 @@ ui_media_drive_insert( const ui_media_drive_info_t *drive,
     }
   }
   if( drive->insert_hook ) {
-    error = drive->insert_hook( drive, !filename );
+    error = drive->insert_hook( drive, !filename, 0 );
     if( error )
       return 1;
   }
 
   fdd_load( drive->fdd, drive->disk, 0 );
+
+  if( drive->insert_hook ) {
+    error = drive->insert_hook( drive, !filename, 1 );
+    if( error )
+      return 1;
+  }
 
   /* Set the 'eject' item active */
   ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_ALL );
