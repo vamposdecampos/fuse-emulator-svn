@@ -1737,7 +1737,7 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
 MOO
 	    return d->status = DISK_OPEN;
 	  }
-	  if( data_add( d, buffer, NULL, hdrb[6] + 256 * hdrb[7] - 1,
+	  if( data_add( d, buffer, NULL, seclen,
 			hdrb[4] & 0x04 ? DDAM : NO_DDAM, gap, CRC_OK, NO_AUTOFILL, NULL ) ) {
 	    if( uncomp_buff )
 	      free( uncomp_buff );
@@ -1750,7 +1750,6 @@ MOO
 	    return d->status = DISK_MEM;
 	  shdr = hdrb;
 	  for( i = 0; i < seclen; ) {			/* fill buffer */
-	    hdrb = shdr + i;
 	    if( buffavail( buffer ) < 13 ) { 		/* check block header is avail. */
 	      free( uncomp_buff );
 MOO
@@ -1763,11 +1762,14 @@ MOO
 	      return d->status = DISK_OPEN;
 	    }
 	    /* ab ab ab ab ab ab ab ab ab ab ab ... */
-	    for( j = 1; j < hdrb[9] + 256 * hdrb[10]; j++ )
+	    for( j = 0; j < hdrb[9] + 256 * hdrb[10]; j++ )
 	      memcpy( uncomp_buff + i + j * 2, &hdrb[11], 2 );
 	    i += 2 * ( hdrb[9] + 256 * hdrb[10] );
+	    buffer->index += 4;
+	    hdrb += 4;
 	  }
-	  if( data_add( d, NULL, uncomp_buff, hdrb[6] + 256 * hdrb[7] - 1,
+	  hdrb = shdr;
+	  if( data_add( d, NULL, uncomp_buff, seclen,
 		      hdrb[4] & 0x04 ? DDAM : NO_DDAM, gap, CRC_OK, NO_AUTOFILL, NULL ) ) {
 	    free( uncomp_buff );
 MOO
@@ -1786,15 +1788,17 @@ MOO
 	    }
 fprintf(stderr, "RLE offs=%Zd i=%d seclen=%d hdr: %d %d\n", buffer->index, i, seclen, hdrb[9], hdrb[10]);
 	    if( hdrb[9] == 0 ) {		/* raw bytes */
+	      buffer->index += 2;
 	      if( i + hdrb[10] > seclen ||	/* too many data bytes */
 		      buffread( uncomp_buff + i, hdrb[10], buffer ) != 1 ) {
-//	        free( uncomp_buff );
+	        free( uncomp_buff );
 MOO
-//	        return d->status = DISK_OPEN;
+	        return d->status = DISK_OPEN;
 	      }
 	      i += hdrb[10];
 	      hdrb += 2 + hdrb[10];
 	    } else {				/* repeated samples */
+	      buffer->index += 2;
 	      if( i + 2 * hdrb[9] * hdrb[10] > seclen || /* too many data bytes */
 		      buffread( uncomp_buff + i, 2 * hdrb[9], buffer ) != 1 ) {
 	        free( uncomp_buff );
@@ -1811,11 +1815,11 @@ MOO
 	      for( j = 1; j < hdrb[10]; j++ ) /* repeat 'n' times */
 	        memcpy( uncomp_buff + i + j * 2 * hdrb[9], uncomp_buff + i, 2 * hdrb[9] );
 	      i += 2 * hdrb[9] * hdrb[10];
-	      hdrb += 2 + 2 * hdrb[9] * hdrb[10];
+	      hdrb += 2 + 2 * hdrb[9];
 	    }
 	  }
 	  hdrb = shdr;
-	  if( data_add( d, NULL, uncomp_buff, hdrb[6] + 256 * hdrb[7] - 1,
+	  if( data_add( d, NULL, uncomp_buff, seclen,
 	      hdrb[4] & 0x04 ? DDAM : NO_DDAM, gap, CRC_OK, NO_AUTOFILL, NULL ) ) {
 	    free( uncomp_buff );
 MOO
