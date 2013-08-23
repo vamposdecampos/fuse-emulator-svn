@@ -1667,9 +1667,9 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
       d->cylinders = buff[1] + 1;
     sector_offset = track_offset + 4;
     mfm = buff[2] & 0x80 ? 0 : 1;	/* 0x80 == 1 => SD track */
-    bpt = postindex_len( d, mfm_old || mfm ? GAP_MINIMAL_FM : GAP_MINIMAL_MFM ) +
+    bpt = postindex_len( d, mfm_old || mfm ? GAP_MINIMAL_MFM : GAP_MINIMAL_FM ) +
 	  ( preindex ? 
-	    preindex_len( d, mfm_old || mfm ? GAP_MINIMAL_FM : GAP_MINIMAL_MFM ) :
+	    preindex_len( d, mfm_old || mfm ? GAP_MINIMAL_MFM : GAP_MINIMAL_FM ) :
 	    0 ) +
 	  mfm_old || mfm ? 6 : 3;
     for( s = 0; s < sectors; s++ ) {
@@ -1681,7 +1681,7 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
 	  return d->status = DISK_OPEN;
 
 	bpt += calc_sectorlen( mfm_old || mfm, 0x80 << buff[3], 
-				    mfm_old || mfm ? GAP_MINIMAL_FM : GAP_MINIMAL_MFM );
+				    mfm_old || mfm ? GAP_MINIMAL_MFM : GAP_MINIMAL_FM );
 	if( buff[3] > seclen )
 	  seclen = buff[3];			/* biggest sector */
 	sector_offset += buff[6] + 256 * buff[7] - 1;
@@ -1710,7 +1710,7 @@ open_td0( buffer_t *buffer, disk_t *d, int preindex )
     DISK_SET_TRACK( d, ( buff[2] & 0x01 ), buff[1] );
     d->i = 0;
     			/* later teledisk -> if buff[2] & 0x80 -> FM track */
-    gap = mfm_old || buff[2] & 0x80 ? GAP_MINIMAL_FM : GAP_MINIMAL_MFM;
+    gap = !mfm_old || buff[2] & 0x80 ? GAP_MINIMAL_FM : GAP_MINIMAL_MFM;
     postindex_add( d, gap );
 
     buffer->index += 4;		/* sector header*/
