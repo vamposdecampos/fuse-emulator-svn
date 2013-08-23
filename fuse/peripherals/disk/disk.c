@@ -1750,7 +1750,7 @@ MOO
 	    return d->status = DISK_MEM;
 	  shdr = hdrb;
 	  for( i = 0; i < seclen; ) {			/* fill buffer */
-	    if( buffavail( buffer ) < 13 ) { 		/* check block header is avail. */
+	    if( buffavail( buffer ) < 4 ) { 		/* check block header is avail. */
 	      free( uncomp_buff );
 MOO
 	      return d->status = DISK_OPEN;
@@ -1781,7 +1781,7 @@ MOO
 	    return d->status = DISK_MEM;
 	  shdr = hdrb;
 	  for( i = 0; i < seclen; ) {			/* fill buffer */
-	    if( buffavail( buffer ) < 11 ) {		/* check block header is avail */
+	    if( buffavail( buffer ) < 2 ) {		/* check block header is avail */
 	      free( uncomp_buff );
 MOO
 	      return d->status = DISK_OPEN;
