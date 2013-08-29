@@ -187,7 +187,6 @@ opus_reset( int hard_reset )
 {
   int i;
   wd_fdc_drive *d;
-  const fdd_params_t *dt;
 
   opus_active = 0;
   opus_available = 0;
@@ -238,30 +237,10 @@ opus_reset( int hard_reset )
 
     d->index_pulse = 0;
     d->index_interrupt = 0;
+
+    ui_media_drive_update_menus( &opus_ui_drives[ i ],
+                                 UI_MEDIA_DRIVE_UPDATE_ALL );
   }
-
-  /* We can eject disks only if they are currently present */
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_opus1_type() + 1 ];	/* +1 => there is no `Disabled' */
-  fdd_init( &opus_drives[ OPUS_DRIVE_1 ].fdd, FDD_SHUGART, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_1, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_1_EJECT,
-		    opus_drives[ OPUS_DRIVE_1 ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_1_FLIP_SET,
-		    !opus_drives[ OPUS_DRIVE_1 ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_1_WP_SET,
-		    !opus_drives[ OPUS_DRIVE_1 ].fdd.wrprot );
-
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_opus2_type() ];
-  fdd_init( &opus_drives[ OPUS_DRIVE_2 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_2, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_2_EJECT,
-		    opus_drives[ OPUS_DRIVE_2 ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_2_FLIP_SET,
-		    !opus_drives[ OPUS_DRIVE_2 ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_OPUS_2_WP_SET,
-		    !opus_drives[ OPUS_DRIVE_2 ].fdd.wrprot );
-
 
   opus_fdc->current_drive = &opus_drives[ 0 ];
   fdd_select( &opus_drives[ 0 ].fdd, 1 );
