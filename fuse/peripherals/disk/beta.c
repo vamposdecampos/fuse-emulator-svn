@@ -196,7 +196,6 @@ beta_reset( int hard_reset GCC_UNUSED )
 {
   int i;
   wd_fdc_drive *d;
-  const fdd_params_t *dt;
 
   event_remove_type( index_event );
 
@@ -250,50 +249,10 @@ beta_reset( int hard_reset GCC_UNUSED )
     }
   }
 
-  /* We can eject disks only if they are currently present */
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128a_type() + 1 ];	/* +1 => there is no `Disabled' */
-  fdd_init( &beta_drives[ BETA_DRIVE_A ].fdd, FDD_SHUGART, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_EJECT,
-		    beta_drives[ BETA_DRIVE_A ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_FLIP_SET,
-		    !beta_drives[ BETA_DRIVE_A ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_A_WP_SET,
-		    !beta_drives[ BETA_DRIVE_A ].fdd.wrprot );
-
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128b_type() ];
-  fdd_init( &beta_drives[ BETA_DRIVE_B ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_FLIP_SET,
-		    !beta_drives[ BETA_DRIVE_B ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_EJECT,
-		    beta_drives[ BETA_DRIVE_B ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_B_WP_SET,
-		    !beta_drives[ BETA_DRIVE_B ].fdd.wrprot );
-
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128c_type() ];
-  fdd_init( &beta_drives[ BETA_DRIVE_C ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_FLIP_SET,
-		    !beta_drives[ BETA_DRIVE_C ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_EJECT,
-		    beta_drives[ BETA_DRIVE_C ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_C_WP_SET,
-		    !beta_drives[ BETA_DRIVE_C ].fdd.wrprot );
-
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_beta128d_type() ];
-  fdd_init( &beta_drives[ BETA_DRIVE_D ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_FLIP_SET,
-		    !beta_drives[ BETA_DRIVE_D ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_EJECT,
-		    beta_drives[ BETA_DRIVE_D ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_BETA_D_WP_SET,
-		    !beta_drives[ BETA_DRIVE_D ].fdd.wrprot );
-
+  for( i = 0; i < BETA_NUM_DRIVES; i++ ) {
+    ui_media_drive_update_menus( &beta_ui_drives[ i ],
+                                 UI_MEDIA_DRIVE_UPDATE_ALL );
+  }
 
   beta_select_drive( 0 );
   machine_current->memory_map();
