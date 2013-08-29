@@ -225,7 +225,6 @@ disciple_reset( int hard_reset )
 {
   int i;
   wd_fdc_drive *d;
-  const fdd_params_t *dt;
 
   disciple_active = 0;
   disciple_available = 0;
@@ -271,30 +270,10 @@ disciple_reset( int hard_reset )
 
     d->index_pulse = 0;
     d->index_interrupt = 0;
+
+    ui_media_drive_update_menus( &disciple_ui_drives[ i ],
+                                 UI_MEDIA_DRIVE_UPDATE_ALL );
   }
-
-  /* We can eject disks only if they are currently present */
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_disciple1_type() + 1 ];
-  fdd_init( &disciple_drives[ DISCIPLE_DRIVE_1 ].fdd, FDD_SHUGART, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_1, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_1_EJECT,
-		    disciple_drives[ DISCIPLE_DRIVE_1 ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_1_FLIP_SET,
-		    !disciple_drives[ DISCIPLE_DRIVE_1 ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_1_WP_SET,
-		    !disciple_drives[ DISCIPLE_DRIVE_1 ].fdd.wrprot );
-
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_disciple2_type() ];
-  fdd_init( &disciple_drives[ DISCIPLE_DRIVE_2 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_2, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_2_EJECT,
-		    disciple_drives[ DISCIPLE_DRIVE_2 ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_2_FLIP_SET,
-		    !disciple_drives[ DISCIPLE_DRIVE_2 ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_DISCIPLE_2_WP_SET,
-		    !disciple_drives[ DISCIPLE_DRIVE_2 ].fdd.wrprot );
-
 
   disciple_fdc->current_drive = &disciple_drives[ 0 ];
   fdd_select( &disciple_drives[ 0 ].fdd, 1 );
