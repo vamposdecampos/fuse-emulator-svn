@@ -190,7 +190,6 @@ plusd_reset( int hard_reset )
 {
   int i;
   wd_fdc_drive *d;
-  const fdd_params_t *dt;
 
   plusd_active = 0;
   plusd_available = 0;
@@ -230,30 +229,10 @@ plusd_reset( int hard_reset )
 
     d->index_pulse = 0;
     d->index_interrupt = 0;
+
+    ui_media_drive_update_menus( &plusd_ui_drives[ i ],
+                                 UI_MEDIA_DRIVE_UPDATE_ALL );
   }
-
-  /* We can eject disks only if they are currently present */
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_plusd1_type() + 1 ];
-  fdd_init( &plusd_drives[ PLUSD_DRIVE_1 ].fdd, FDD_SHUGART, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_1, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_1_EJECT,
-		    plusd_drives[ PLUSD_DRIVE_1 ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_1_FLIP_SET,
-		    !plusd_drives[ PLUSD_DRIVE_1 ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_1_WP_SET,
-		    !plusd_drives[ PLUSD_DRIVE_1 ].fdd.wrprot );
-
-
-  dt = &fdd_params[ option_enumerate_diskoptions_drive_plusd2_type() ];
-  fdd_init( &plusd_drives[ PLUSD_DRIVE_2 ].fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_2, dt->enabled );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_2_EJECT,
-		    plusd_drives[ PLUSD_DRIVE_2 ].fdd.loaded );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_2_FLIP_SET,
-		    !plusd_drives[ PLUSD_DRIVE_2 ].fdd.upsidedown );
-  ui_menu_activate( UI_MENU_ITEM_MEDIA_DISK_PLUSD_2_WP_SET,
-		    !plusd_drives[ PLUSD_DRIVE_2 ].fdd.wrprot );
-
 
   plusd_fdc->current_drive = &plusd_drives[ 0 ];
   fdd_select( &plusd_drives[ 0 ].fdd, 1 );
