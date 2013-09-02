@@ -546,7 +546,7 @@ ui_drive_get_params_2( void )
 
 static ui_media_drive_info_t plusd_ui_drives[ PLUSD_NUM_DRIVES ] = {
   {
-    .name = "+D/Drive 1",
+    .name = "+D Disk 1",
     .controller_index = UI_MEDIA_CONTROLLER_PLUSD,
     .drive_index = PLUSD_DRIVE_1,
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUSD,
@@ -558,7 +558,7 @@ static ui_media_drive_info_t plusd_ui_drives[ PLUSD_NUM_DRIVES ] = {
     .get_params = &ui_drive_get_params_1,
   },
   {
-    .name = "+D/Drive 2",
+    .name = "+D Disk 2",
     .controller_index = UI_MEDIA_CONTROLLER_PLUSD,
     .drive_index = PLUSD_DRIVE_2,
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUSD,

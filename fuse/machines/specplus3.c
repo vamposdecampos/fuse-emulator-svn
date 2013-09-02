@@ -75,7 +75,7 @@ static int ui_drive_inserted( const ui_media_drive_info_t *drive, int new );
 
 static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
   {
-    .name = "+3/Drive A:",
+    .name = "+3 Disk A:",
     .controller_index = UI_MEDIA_CONTROLLER_PLUS3,
     .drive_index = SPECPLUS3_DRIVE_A,
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUS3,
@@ -88,7 +88,7 @@ static ui_media_drive_info_t ui_drives[ SPECPLUS3_NUM_DRIVES ] = {
     .insert_hook = &ui_drive_inserted,
   },
   {
-    .name = "+3/Drive B:",
+    .name = "+3 Disk B:",
     .controller_index = UI_MEDIA_CONTROLLER_PLUS3,
     .drive_index = SPECPLUS3_DRIVE_B,
     .menu_item_parent = UI_MENU_ITEM_MEDIA_DISK_PLUS3,
