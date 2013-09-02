@@ -259,7 +259,7 @@ drive_eject( const ui_media_drive_info_t *drive )
   if( drive->disk->dirty ) {
 
     ui_confirm_save_t confirm = ui_confirm_save(
-      "Disk in drive %s has been modified.\n"
+      "%s has been modified.\n"
       "Do you want to save it?",
       drive->name
     );

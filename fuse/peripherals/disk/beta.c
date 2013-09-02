@@ -571,7 +571,7 @@ ui_drive_get_params_d( void )
 
 static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
   {
-    /* .name = */ "Beta/Drive A:",
+    /* .name = */ "Beta Disk A:",
     /* .controller_index = */ UI_MEDIA_CONTROLLER_BETA,
     /* .drive_index = */ BETA_DRIVE_A,
     /* .menu_item_parent = */ UI_MENU_ITEM_MEDIA_DISK_BETA,
@@ -585,7 +585,7 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     /* .autoload_hook = */ &ui_drive_autoload,
   },
   {
-    /* .name = */ "Beta/Drive B:",
+    /* .name = */ "Beta Disk B:",
     /* .controller_index = */ UI_MEDIA_CONTROLLER_BETA,
     /* .drive_index = */ BETA_DRIVE_B,
     /* .menu_item_parent = */ UI_MENU_ITEM_MEDIA_DISK_BETA,
@@ -599,7 +599,7 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     /* .autoload_hook = */ &ui_drive_autoload,
   },
   {
-    /* .name = */ "Beta/Drive C:",
+    /* .name = */ "Beta Disk C:",
     /* .controller_index = */ UI_MEDIA_CONTROLLER_BETA,
     /* .drive_index = */ BETA_DRIVE_C,
     /* .menu_item_parent = */ UI_MENU_ITEM_MEDIA_DISK_BETA,
@@ -613,7 +613,7 @@ static ui_media_drive_info_t beta_ui_drives[ BETA_NUM_DRIVES ] = {
     /* .autoload_hook = */ &ui_drive_autoload,
   },
   {
-    /* .name = */ "Beta/Drive D:",
+    /* .name = */ "Beta Disk D:",
     /* .controller_index = */ UI_MEDIA_CONTROLLER_BETA,
     /* .drive_index = */ BETA_DRIVE_D,
     /* .menu_item_parent = */ UI_MENU_ITEM_MEDIA_DISK_BETA,
