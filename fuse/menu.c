@@ -373,9 +373,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert_new )
   type = ( action & 0xf0 ) >> 4;
 
   switch( type ) {
-  case 1:
-    beta_disk_insert( which, NULL, 0 );
-    break;
   case 2:
     plusd_disk_insert( which, NULL, 0 );
     break;
@@ -411,9 +408,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   fuse_emulation_pause();
 
   switch( type ) {
-  case 1:
-    snprintf( title, 80, "Fuse - Insert Beta Disk %c:", 'A' + which );
-    break;
   case 2:
     snprintf( title, 80, "Fuse - Insert +D Disk %i", which + 1 );
     break;
@@ -437,9 +431,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_insert )
   if( !filename ) { fuse_emulation_unpause(); return; }
 
   switch( type ) {
-  case 1:
-    beta_disk_insert( which, filename, 0 );
-    break;
   case 2:
     plusd_disk_insert( which, filename, 0 );
     break;
@@ -473,9 +464,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_eject )
   type = ( action & 0x0f0 ) >> 4;
 
   switch( type ) {
-  case 1:
-    beta_disk_eject( which );
-    break;
   case 2:
     plusd_disk_eject( which );
     break;
@@ -506,9 +494,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_save )
   saveas = ( action & 0xf00 ) >> 8;
 
   switch( type ) {
-  case 1:
-    beta_disk_save( which, saveas );
-    break;
   case 2:
     plusd_disk_save( which, saveas );
     break;
@@ -539,9 +524,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_flip )
   flip = !!( action & 0x100 );
 
   switch( type ) {
-  case 1:
-    beta_disk_flip( which, flip );
-    break;
   case 2:
     plusd_disk_flip( which, flip );
     break;
@@ -570,9 +552,6 @@ MENU_CALLBACK_WITH_ACTION( menu_media_writeprotect )
   wrprot = !!( action & 0x100 );
 
   switch( type ) {
-  case 1:
-    beta_disk_writeprotect( which, wrprot );
-    break;
   case 2:
     plusd_disk_writeprotect( which, wrprot );
     break;
@@ -920,18 +899,6 @@ menu_check_media_changed( void )
   confirm = tape_close(); if( confirm ) return 1;
 
   confirm = ui_media_drive_eject_all();
-  if( confirm ) return 1;
-
-  confirm = beta_disk_eject( BETA_DRIVE_A );
-  if( confirm ) return 1;
-
-  confirm = beta_disk_eject( BETA_DRIVE_B );
-  if( confirm ) return 1;
-
-  confirm = beta_disk_eject( BETA_DRIVE_C );
-  if( confirm ) return 1;
-
-  confirm = beta_disk_eject( BETA_DRIVE_D );
   if( confirm ) return 1;
 
   confirm = opus_disk_eject( OPUS_DRIVE_1 );
