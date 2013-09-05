@@ -31,6 +31,7 @@ typedef int (*ui_media_drive_is_available_fn)( void );
 typedef struct ui_media_drive_info_t
 {
   const char *name;
+  int menu_item_parent;
   ui_media_drive_is_available_fn is_available;
 } ui_media_drive_info_t;
 
@@ -38,5 +39,6 @@ int ui_media_drive_register( ui_media_drive_info_t *drive );
 void ui_media_drive_end( void );
 
 int ui_media_drive_any_available( void );
+void ui_media_drive_update_parent_menus( void );
 
 #endif			/* #ifndef FUSE_UIMEDIA_H */

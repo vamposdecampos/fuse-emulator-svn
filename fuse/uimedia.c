@@ -29,6 +29,7 @@
 #include <glib.h>
 #endif
 
+#include "ui/ui.h"
 #include "ui/uimedia.h"
 
 static GSList *registered_drives = NULL;
@@ -64,4 +65,20 @@ ui_media_drive_any_available( void )
   gboolean res = 0;
   g_slist_foreach( registered_drives, any_available, &res );
   return res;
+}
+
+
+static void
+update_parent_menus( gpointer data, gpointer user_data )
+{
+  const ui_media_drive_info_t *drive = data;
+
+  if( drive->is_available && drive->menu_item_parent >= 0 )
+    ui_menu_activate( drive->menu_item_parent, drive->is_available() );
+}
+
+void
+ui_media_drive_update_parent_menus( void )
+{
+  g_slist_foreach( registered_drives, update_parent_menus, NULL );
 }
