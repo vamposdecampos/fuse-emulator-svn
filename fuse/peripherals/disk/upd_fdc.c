@@ -1489,6 +1489,28 @@ fprintf(stderr, "exec intrq: cmd %d\n", f->cmd->id);
   }
 }
 
+static FILE *trace_fp = NULL;
+
+static void trace_open(void)
+{
+	if (trace_fp)
+		return;
+	trace_fp = fopen("/tmp/upd_fdc_trace.log", "a");
+	if (trace_fp)
+		setlinebuf(trace_fp);
+}
+
+static void trace(char what, libspectrum_byte val, int newline)
+{
+	trace_open();
+	fprintf(trace_fp, "%c:0x%02x%c", what, val, newline ? '\n' : ' ');
+}
+
+static void trace_status(upd_fdc *f, int newline)
+{
+	trace('S', f->main_status, newline);
+}
+
 libspectrum_byte
 upd_fdc_read_data( upd_fdc *f )
 {
@@ -1501,8 +1523,11 @@ fprintf(stderr, "read_data: ");
 //    upd_fdc_update_intrq_data( f, 0 );
     upd_fdc_intrq( f, 0 );
 
+  trace_status(f, 0);
   r = upd_fdc_read_data_internal( f );
   upd_fdc_update_intrq( f );
+  trace('R', r, 0);
+  trace_status(f, 1);
   return r;
 }
 
@@ -1510,6 +1535,8 @@ void
 upd_fdc_write_data( upd_fdc *f, libspectrum_byte data )
 {
 fprintf(stderr, "write_data: ");
+  trace_status(f, 0);
+  trace('W', data, 0);
 //  if( ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
 //      !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
 //  if( !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
@@ -1518,10 +1545,14 @@ fprintf(stderr, "write_data: ");
 
   upd_fdc_write_data_internal( f, data );
   upd_fdc_update_intrq( f );
+  trace_status(f, 1);
 }
 
 void upd_fdc_tc( upd_fdc *f, int tc )
 {
+  trace_open();
+  if (trace_fp)
+    fprintf(trace_fp, " TC:%d:%d ", !!f->tc, !!tc);
   if (tc > 0) {
     if( !f->tc ) {
       fprintf(stderr, "%s: TC data_register[] = %d/%d/%d/%d EOT=%d\n",
