@@ -35,6 +35,7 @@
 #include "settings.h"
 #include "ui/ui.h"
 #include "ui/uimedia.h"
+#include "z80/z80.h"
 
 #if 1
 #define dbg(fmt, args...) fprintf(stderr, "%s:%d: " fmt "\n", __func__, __LINE__, ## args)
@@ -134,6 +135,11 @@ ctc_trigger( struct cobra_ctc *ctc, int trigger )
     if( ctc->zc ) {
       ctc->counter = ctc->time_constant;
       dbg( "%p ZC: new counter: %d", ctc, ctc->counter );
+      if( ctc->control_word & Z80_CTC_CONTROL_INTR_EN ) {
+        // TODO: event?  doesn't seem to fire.
+        dbg( "%p interrupt! vector %d", ctc, ctc->vector );
+        z80_interrupt_vector( ctc->vector );
+      }
     }
   }
   ctc->trigger_pin = trigger;

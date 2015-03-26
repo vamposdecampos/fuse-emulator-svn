@@ -140,7 +140,7 @@ z80_reset( int hard_reset GCC_UNUSED )
 
 /* Process a z80 maskable interrupt */
 int
-z80_interrupt( void )
+z80_interrupt_vector( libspectrum_byte vector )
 {
   /* An interrupt will occur if IFF1 is set and the /INT line hasn't
      gone high again. On a Timex machine, we also need the SCLD's
@@ -169,7 +169,7 @@ z80_interrupt( void )
       case 1: PC = 0x0038; tstates += 7; break;
       case 2: 
 	{
-	  libspectrum_word inttemp=(0x100*I)+0xff;
+	  libspectrum_word inttemp=(0x100*I) + vector;
 	  PCL = readbyte(inttemp++); PCH = readbyte(inttemp);
 	  tstates += 7;
 	  break;
@@ -186,6 +186,12 @@ z80_interrupt( void )
     return 0;			/* Did not accept an interrupt */
 
   }
+}
+
+int
+z80_interrupt( void )
+{
+  return z80_interrupt_vector( 0xff );
 }
 
 /* Process a z80 non-maskable interrupt */

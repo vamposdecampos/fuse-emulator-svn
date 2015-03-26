@@ -59,6 +59,7 @@ void z80_init( void );
 void z80_reset( int hard_reset );
 
 int z80_interrupt( void );
+int z80_interrupt_vector( libspectrum_byte vector );
 void z80_retn( void );
 
 void z80_do_opcodes(void);
