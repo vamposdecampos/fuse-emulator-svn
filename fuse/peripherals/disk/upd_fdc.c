@@ -516,10 +516,6 @@ cmd_result( upd_fdc *f )
     f->state = UPD_FDC_STATE_RES;
     if( f->cmd->id != UPD_CMD_SENSE_INT )
       upd_fdc_set_intrq(f, UPD_INTRQ_RESULT);
-
-     if( f->tc && f->data_offset < f->rlen )
-       f->data_register[3]++;
-
     upd_fdc_set_main_status(f, UPD_FDC_MAIN_DATA_READ, 1);
 //    upd_fdc_intrq( f, 1 ); // XXX HACK
   } else {			/* NO result state */
@@ -1626,15 +1622,14 @@ void upd_fdc_tc( upd_fdc *f, int tc )
     fprintf(trace_fp, " TC:%d:%d ", !!f->tc, !!tc);
   if (tc > 0) {
     if( !f->tc ) {
-      fprintf(stderr, "%s: TC data_register[] = %d/%d/%d/%d EOT=%d data_offset=%d rlen=%d\n",
+      fprintf(stderr, "%s: TC data_register[] = %d/%d/%d/%d EOT=%d\n",
       	__func__,
       	f->data_register[1],
       	f->data_register[2],
       	f->data_register[3],
       	f->data_register[4],
-      	f->data_register[5],
-      	f->data_offset,
-      	f->rlen);
+      	f->data_register[5]);
+     f->data_register[3]++;
     }
 #if 0
     if( !f->tc && ( f->main_status & UPD_FDC_MAIN_EXECUTION ) ) {
