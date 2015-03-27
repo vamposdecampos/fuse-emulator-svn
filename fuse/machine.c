@@ -257,26 +257,34 @@ machine_select_machine( fuse_machine_info *machine )
 }
 
 int
-machine_load_rom_bank_from_buffer( memory_page* bank_map, int page_num,
-  unsigned char *buffer, size_t length, int custom )
+machine_load_rom_bank_from_buffer_shadow( memory_page* bank_map, int page_num,
+  unsigned char *buffer, size_t buf_length, size_t mem_length, int custom )
 {
   size_t offset;
-  libspectrum_byte *data = memory_pool_allocate( length );
+  libspectrum_byte *data = memory_pool_allocate( buf_length );
   memory_page *page;
 
-  memcpy( data, buffer, length );
+  memcpy( data, buffer, buf_length );
 
   for( page = &bank_map[ page_num * MEMORY_PAGES_IN_16K ], offset = 0;
-       offset < length;
+       offset < mem_length;
        page++, offset += MEMORY_PAGE_SIZE ) {
     page->offset = offset;
     page->page_num = page_num;
-    page->page = data + offset;
+    page->page = data + (offset % buf_length);
     page->writable = 0;
     page->save_to_snapshot = custom;
   }
 
   return 0;
+}
+
+int
+machine_load_rom_bank_from_buffer( memory_page* bank_map, int page_num,
+  unsigned char *buffer, size_t length, int custom )
+{
+  return machine_load_rom_bank_from_buffer_shadow( bank_map, page_num,
+    buffer, length, length, custom );
 }
 
 static int
@@ -293,7 +301,7 @@ machine_load_rom_bank_from_file( memory_page* bank_map, int page_num,
   }
   if( error ) return error;
   
-  if( rom.length != expected_length ) {
+  if( rom.length > expected_length || (expected_length % rom.length) || rom.length < MEMORY_PAGE_SIZE ) {
     ui_error( UI_ERROR_ERROR,
 	      "ROM '%s' is %ld bytes long; expected %ld bytes",
 	      filename, (unsigned long)rom.length,
