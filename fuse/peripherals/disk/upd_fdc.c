@@ -125,6 +125,20 @@ fprintf(stderr, "%s: %d\n", __func__, enable);
   }
 }
 
+static void
+upd_fdc_set_intrq( upd_fdc *f, upd_intrq_t intrq)
+{
+  f->intrq = intrq;
+}
+
+static void
+upd_fdc_set_main_status( upd_fdc *f, libspectrum_byte mask, int enable )
+{
+  if( enable )
+    f->main_status |= mask;
+  else
+    f->main_status &= ~mask;
+}
 
 static void
 upd_fdc_update_intrq( upd_fdc *f )
