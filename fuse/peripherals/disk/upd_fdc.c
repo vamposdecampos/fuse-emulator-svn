@@ -97,6 +97,8 @@ static upd_cmd_t cmd[] = {/*    mask  value  cmd / res length */
 
 static int fdc_event, head_event, timeout_event;
 
+static FILE *trace_fp = NULL;
+
 static void
 upd_fdc_event( libspectrum_dword last_tstates, int event, void *user_data );
 
@@ -108,14 +110,23 @@ upd_fdc_init_events( void )
   timeout_event = event_register( upd_fdc_event, "UPD FDC timeout" );
 }
 
+/*
 static void
 upd_fdc_intrq( upd_fdc *f, int enable )
+{
+}
+*/
+
+static void
+upd_fdc_intrq_really( upd_fdc *f, int enable )
 {
   /* TODO: handle DMA mode */
   if ( enable == f->last_intrq_out )
     return;
   f->last_intrq_out = enable;
-fprintf(stderr, "%s: %d\n", __func__, enable);
+  fprintf(stderr, "%s: %d\n", __func__, enable);
+  if (trace_fp)
+    fprintf(trace_fp, " INT:%d ", enable);
   if ( enable ) {
     if ( f->set_intrq )
       f->set_intrq( f );
@@ -126,32 +137,65 @@ fprintf(stderr, "%s: %d\n", __func__, enable);
 }
 
 static void
-upd_fdc_set_intrq( upd_fdc *f, upd_intrq_t intrq)
+upd_fdc_set_intrq( upd_fdc *f, upd_intrq_t intrq )
 {
   f->intrq = intrq;
+  if( f->intrq > UPD_INTRQ_NONE) {
+    fprintf(stderr, "INTRQ int: %d\n", f->intrq);
+    upd_fdc_intrq_really( f, 1 );
+  }
+}
+
+static void
+upd_fdc_update_intrq_data( upd_fdc *f )
+{
+  int datareq = ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
+                ( f->main_status & UPD_FDC_MAIN_DATAREQ );
+  //if( f->non_dma && datareq )
+  if( datareq ) {
+    fprintf(stderr, "INTRQ datareq\n");
+    upd_fdc_intrq_really( f, 1 );
+  }
 }
 
 static void
 upd_fdc_set_main_status( upd_fdc *f, libspectrum_byte mask, int enable )
 {
+  fprintf(stderr, "%s: %s 0x%02x\n", __func__, enable ? "set" : "clear", mask);
   if( enable )
     f->main_status |= mask;
   else
     f->main_status &= ~mask;
+  upd_fdc_update_intrq_data( f );
+}
+
+static void
+upd_fdc_ack_irq( upd_fdc *f, int read )
+{
+  fprintf(stderr, "INTRQ ack; int=%d\n", f->intrq);
+  if( f->intrq == UPD_INTRQ_NONE)
+    upd_fdc_intrq_really( f, 0 );
 }
 
 static void
 upd_fdc_update_intrq( upd_fdc *f )
 {
+}
+
+#if 0
   /* TODO: only if not in DMA mode? */
   int datareq = ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
                 ( f->main_status & UPD_FDC_MAIN_DATAREQ );
-  if( datareq )
+  if( datareq ) {
+    fprintf(stderr, "INTRQ datareq\n");
     upd_fdc_intrq( f, 1 );
-  else if( f->intrq >= UPD_INTRQ_READY )
+//  } else if( f->intrq >= UPD_INTRQ_READY ) {
+  } else if( f->intrq > UPD_INTRQ_NONE ) {
+    fprintf(stderr, "INTRQ int: %d\n", f->intrq);
     upd_fdc_intrq( f, 1 );
 //  upd_fdc_update_intrq_data( f, datareq );
-}
+  }
+#endif
 
 static void
 cmd_identify( upd_fdc *f )
@@ -191,7 +235,8 @@ upd_fdc_master_reset( upd_fdc *f )
   f->non_dma = 1;
   f->direction = 0;
   f->head_load = 0;
-  upd_fdc_set_intrq(f, UPD_INTRQ_NONE);
+  //upd_fdc_set_intrq(f, UPD_INTRQ_NONE);
+  f->intrq = UPD_INTRQ_NONE;
   f->state = UPD_FDC_STATE_CMD;
   f->cycle = 0;
   f->last_sector_read = 0;
@@ -469,9 +514,10 @@ cmd_result( upd_fdc *f )
   upd_fdc_set_main_status(f, UPD_FDC_MAIN_DATAREQ, 1);
   if( f->cycle > 0 ) {	/* result state */
     f->state = UPD_FDC_STATE_RES;
-    upd_fdc_set_intrq(f, UPD_INTRQ_RESULT);
+    if( f->cmd->id != UPD_CMD_SENSE_INT )
+      upd_fdc_set_intrq(f, UPD_INTRQ_RESULT);
     upd_fdc_set_main_status(f, UPD_FDC_MAIN_DATA_READ, 1);
-    upd_fdc_intrq( f, 1 ); // XXX HACK
+//    upd_fdc_intrq( f, 1 ); // XXX HACK
   } else {			/* NO result state */
     f->state = UPD_FDC_STATE_CMD;
     upd_fdc_set_main_status(f, UPD_FDC_MAIN_DATADIR, 0);
@@ -1346,8 +1392,8 @@ upd_fdc_write_data_internal( upd_fdc *f, libspectrum_byte data )
     }
 
     if( f->main_status & UPD_FDC_MAIN_BUSY ) {
-fprintf(stderr, "exec intrq: cmd %d\n", f->cmd->id);
-      upd_fdc_intrq( f, 1 ); // XXX HACK
+//fprintf(stderr, "not INTRQ exec: cmd id %d\n", f->cmd->id);
+//      upd_fdc_intrq( f, 1 ); // XXX HACK
     }
 
     if( f->cmd->id < UPD_CMD_SENSE_INT ) {
@@ -1509,8 +1555,6 @@ fprintf(stderr, "exec intrq: cmd %d\n", f->cmd->id);
   }
 }
 
-static FILE *trace_fp = NULL;
-
 static void trace_open(void)
 {
 	if (trace_fp)
@@ -1540,12 +1584,13 @@ fprintf(stderr, "read_data: ");
 //  if( ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
 //      ( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
 //  if( f->main_status & UPD_FDC_MAIN_DATA_READ )
-//    upd_fdc_update_intrq_data( f, 0 );
-    upd_fdc_intrq( f, 0 );
+//    upd_fdc_intrq_really ( f, 0 );
+
+  upd_fdc_ack_irq( f, 1 );
 
   trace_status(f, 0);
   r = upd_fdc_read_data_internal( f );
-  upd_fdc_update_intrq( f );
+  upd_fdc_update_intrq_data( f );
   trace('R', r, 0);
   trace_status(f, 1);
   return r;
@@ -1560,11 +1605,13 @@ fprintf(stderr, "write_data: ");
 //  if( ( f->main_status & UPD_FDC_MAIN_EXECUTION ) &&
 //      !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
 //  if( !( f->main_status & UPD_FDC_MAIN_DATA_READ ) )
-//    upd_fdc_update_intrq_data( f, 0 );
-    upd_fdc_intrq( f, 0 );
+//    upd_fdc_intrq_really( f, 0 );
 
+  upd_fdc_ack_irq( f, 0 );
+
+  upd_fdc_intrq_really( f, 0 );
   upd_fdc_write_data_internal( f, data );
-  upd_fdc_update_intrq( f );
+  upd_fdc_update_intrq_data( f );
   trace_status(f, 1);
 }
 
