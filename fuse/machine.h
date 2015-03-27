@@ -36,6 +36,7 @@
 #include "spectrum.h"
 
 typedef libspectrum_byte (*spectrum_unattached_port_fn)( void );
+typedef int (*spectrum_frame_interrupt_fn)( void );
 
 /* How long do things take to happen; fields are pulled from libspectrum
    via the libspectrum_timings_* functions */
@@ -76,6 +77,8 @@ typedef struct fuse_machine_info {
   spectrum_unattached_port_fn unattached_port; /* What to return if we read
 						  from a port which isn't
 						  attached to anything */
+
+  spectrum_frame_interrupt_fn frame_interrupt;
 
   ayinfo ay;		/* The AY-8-3912 chip */
 

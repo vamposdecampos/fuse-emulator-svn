@@ -73,7 +73,8 @@ spectrum_frame_event_fn( libspectrum_dword last_tstates, int type,
   rzx_frame();
   psg_frame();
   spectrum_frame();
-  z80_interrupt();
+  if( !machine_current->frame_interrupt || !machine_current->frame_interrupt() )
+    z80_interrupt();
   ui_joystick_poll();
   timer_estimate_speed();
   debugger_add_time_events();
