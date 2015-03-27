@@ -48,6 +48,7 @@
 #endif
 
 static int cobra_reset( void );
+static int cobra_frame_interrupt( void );
 static int page_event, unpage_event;
 
 int cobra_init( fuse_machine_info *machine )
@@ -66,6 +67,7 @@ int cobra_init( fuse_machine_info *machine )
   machine->ram.valid_pages	     = 3;
 
   machine->unattached_port = spectrum_unattached_port;
+  machine->frame_interrupt = cobra_frame_interrupt;
 
   machine->shutdown = NULL;
 
@@ -122,6 +124,13 @@ memory_ram_set_16k_writable( int page_num, int writable )
 
   for( i = 0; i < MEMORY_PAGES_IN_16K; i++ )
     memory_map_ram[ page_num * MEMORY_PAGES_IN_16K + i ].writable = writable;
+}
+
+static int
+cobra_frame_interrupt( void )
+{
+  /* only allow interrupts in Basic mode */
+  return machine_current->ram.special ? 1 : 0;
 }
 
 int
