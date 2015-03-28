@@ -240,6 +240,7 @@ z80_do_opcodes( void )
     /* Do the instruction fetch; readbyte_internal used here to avoid
        triggering read breakpoints */
     opcode = readbyte_internal( PC );
+//    fprintf(stderr, "z80 fetch @%04x: %02x\n", PC, opcode);
 
     CHECK( if1u, if1_available )
 

@@ -515,7 +515,11 @@ cmd_result( upd_fdc *f )
   upd_fdc_set_main_status(f, UPD_FDC_MAIN_DATAREQ, 1);
   if( f->cycle > 0 ) {	/* result state */
     f->state = UPD_FDC_STATE_RES;
-    if( f->cmd->id != UPD_CMD_SENSE_INT )
+    fprintf(stderr, "%s: is sense: %d, ST0=0x%0x ST1=0x%02x ST2=0x%02x\n", __func__, f->cmd->id == UPD_CMD_SENSE_INT,
+    	f->status_register[0],
+    	f->status_register[1],
+    	f->status_register[2]);
+    if( f->cmd->id != UPD_CMD_SENSE_INT && f->cmd->id != UPD_CMD_INVALID )
       upd_fdc_set_intrq(f, UPD_INTRQ_RESULT);
     upd_fdc_set_main_status(f, UPD_FDC_MAIN_DATA_READ, 1);
 //    upd_fdc_intrq( f, 1 ); // XXX HACK
@@ -539,6 +543,17 @@ seek_step( upd_fdc *f, int start )
   int i, j;
   upd_fdc_drive *d;
 
+  fprintf(stderr, "%s: start=%d, seek=%d/%d/%d/%d age=%d/%d/%d/%d\n",
+    __func__, start,
+    f->seek[0],
+    f->seek[1],
+    f->seek[2],
+    f->seek[3],
+    f->seek_age[0],
+    f->seek_age[1],
+    f->seek_age[2],
+    f->seek_age[3]);
+
   if( start ) {
     i = f->us;
 
@@ -555,10 +570,17 @@ seek_step( upd_fdc *f, int start )
       if( f->seek_age[j] > f->seek_age[i] )
         i = j;
     }
-
-    if( f->seek[i] == 0 || f->seek[i] >= 4 ) {
-      return;
+    
+    if( !f->seek_age[i] ) {
+      i=0;
+      for( j = 1; j < 4; j++) {
+        if( f->seek[j] )
+          i = j;
+      }
     }
+
+    if ( f->seek[i] == 0 || f->seek[i] >= 4 )
+      return;
   }
 
   d = f->drive[i];
@@ -727,6 +749,15 @@ start_read_data( upd_fdc *f )
   int i;
 skip_deleted_sector:
 multi_track_next:
+fprintf(stderr, "%s:%d mt=%d tc=%d %d/%d/%d/%d eot=%d first_rw=%d\n", __func__, __LINE__,
+ f->mt, f->tc,
+ f->data_register[1],
+ f->data_register[2],
+ f->data_register[3],
+ f->data_register[4],
+ f->data_register[5],
+ f->first_rw);
+
   if( f->first_rw || f->read_id || 
       (!f->tc && f->data_register[5] > f->data_register[3]) ) {
     if( !f->read_id ) {
@@ -772,14 +803,24 @@ multi_track_next:
       }
     }
   } else {
-fprintf(stderr, "%s:%d\n", __func__, __LINE__);
-    if( f->mt && f->data_register[3] > f->data_register[5] ) {
+fprintf(stderr, "%s:%d mt=%d tc=%d %d/%d/%d/%d eot=%d\n", __func__, __LINE__,
+ f->mt, f->tc,
+ f->data_register[1],
+ f->data_register[2],
+ f->data_register[3],
+ f->data_register[4],
+ f->data_register[5]);
+    if( f->mt && f->data_register[3] >= f->data_register[5] ) {
       if( f->data_register[2] )
         f->data_register[1]++;		/* next track */
       f->data_register[3] = 1;		/* first sector */
       f->data_register[2] ^= 1;		/* complement LSB */
-      if( !f->tc )
+      if( !f->tc && f->data_register[2] ) {
+        //f->hd ?
+        f->first_rw = 1; //f->data_register[3] = 0;
+        fdd_set_head( &f->current_drive->fdd, f->data_register[2] );
         goto multi_track_next;
+      }
     }
 abort_read_data:
     f->state = UPD_FDC_STATE_RES;	/* end of execution phase */
@@ -1115,7 +1156,11 @@ fprintf(stderr, "done one sector\n");
 fprintf(stderr, "%s:%d\n", __func__, __LINE__);
         //f->data_register[3]--; //XXX
 	//f->data_register[5]++;
-        start_readwrite_data_later( f );
+//	if (!f->mt)
+          start_readwrite_data_later( f );
+//        else
+//          upd_fdc_event( tstates, fdc_event, f );
+        // XXX YYY HACK
       } else {				/* READ DIAG */
 	f->data_register[3]++;		/*FIXME ??? */
 	f->data_register[5]--;

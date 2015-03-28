@@ -153,6 +153,7 @@ ctc_trigger( struct cobra_ctc *ctc, int trigger )
         ctc->intr = 1;
       }
       event_add( tstates + 1, ctc_int_event );
+      //event_add( tstates + 96, ctc_int_event );
     }
   }
   ctc->trigger_pin = trigger;
@@ -323,10 +324,10 @@ cobra_fdc_init( void )
   ctc_int_event = event_register( ctc_int_fn, "CoBra CTC interrupt" );
 
   cobra_fdc = upd_fdc_alloc_fdc( UPD765A, UPD_CLOCK_8MHZ );
-  cobra_fdc->drive[0] = &cobra_drives[0];
-  cobra_fdc->drive[1] = &cobra_drives[1];
-  cobra_fdc->drive[2] = &cobra_drives[2];
-  cobra_fdc->drive[3] = &cobra_drives[3];
+  cobra_fdc->drive[0] = &cobra_drives[2];
+  cobra_fdc->drive[1] = &cobra_drives[3];
+  cobra_fdc->drive[2] = &cobra_drives[0];
+  cobra_fdc->drive[3] = &cobra_drives[1];
   cobra_fdc->set_intrq = cobra_fdc_set_intrq;
   cobra_fdc->reset_intrq = cobra_fdc_reset_intrq;
   cobra_fdc->set_datarq = NULL;

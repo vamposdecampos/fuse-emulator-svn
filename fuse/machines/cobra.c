@@ -133,6 +133,14 @@ cobra_frame_interrupt( void )
   return machine_current->ram.special ? 1 : 0;
 }
 
+/*
+ * memory_map_ram:
+ *   10 - DRAM #0
+ *    5 - VRAM
+ *    7 - DRAM #1
+ *    2 - DRAM #2
+ *    0 - DRAM #3
+ */
 int
 cobra_memory_map( void )
 {
@@ -166,7 +174,7 @@ cobra_memory_map( void )
     memory_ram_set_16k_writable( 10, 1 );
     if( lo6 ) {
       memory_map_16k( 0x0000, memory_map_ram, 10 );
-      memory_map_16k( 0x4000, memory_map_ram, 5 );  // TODO: o6
+      memory_map_16k( 0x4000, memory_map_ram, o6 ? 5 : 7);  // TODO: o5
       memory_map_16k( 0x8000, memory_map_ram, 2 );
       memory_map_16k( 0xc000, memory_map_ram, 0 );
     } else {
@@ -177,15 +185,8 @@ cobra_memory_map( void )
         memory_map_16k( 0x0000, memory_map_ram, 2 );
         memory_map_16k( 0x4000, memory_map_ram, 0 );
       }
-      memory_map_16k_subpage( 0x8000, memory_map_ram, 10, 0 );
-      memory_map_16k_subpage( 0xa000, memory_map_ram, 10, 1 );
-      if( o6 ) { /* TODO! */
-        memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
-        memory_map_16k_subpage( 0xe000, memory_map_ram, 5, 1 );
-      } else {
-        memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
-        memory_map_16k_subpage( 0xe000, memory_map_ram, 5, 1 );
-      }
+      memory_map_16k( 0x8000, memory_map_ram, 10 );
+      memory_map_16k( 0xc000, memory_map_ram, o6 ? 5 : 7);  // TODO: o5
     }
 #endif
   } else {
