@@ -144,6 +144,10 @@ cobra_memory_map( void )
   dbg( "last_byte=0x%02x last_byte2=0x%02x", machine_current->ram.last_byte, machine_current->ram.last_byte2 );
   machine_current->ram.special = po || lo6;
 
+  // HACK: disable frame interrupts
+  machine_current->timings.interrupt_length = machine_current->ram.special ? 0 :
+    libspectrum_timings_interrupt_length( machine_current->machine );
+
   if( machine_current->ram.special ) {
 #if 0 /* 64k */
     memory_ram_set_16k_writable( 10, 1 );
