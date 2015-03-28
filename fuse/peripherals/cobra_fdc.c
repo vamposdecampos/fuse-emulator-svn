@@ -60,6 +60,7 @@ static upd_fdc_drive cobra_drives[COBRA_NUM_DRIVES];
 static ui_media_drive_info_t cobra_ui_drives[ COBRA_NUM_DRIVES ];
 static struct cobra_ctc cobra_ctc[4];
 int cobra_fdc_available;
+int ctc_int_event;
 
 /*
  * Z80-CTC
@@ -103,6 +104,7 @@ cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
   dbg( "%p ctc port 0x%02x chan %d <- 0x%02x", ctc, port & 0xff, channel, b );
   if( ctc->control_word & Z80_CTC_CONTROL_TIME_CONST ) {
     ctc->control_word &= ~Z80_CTC_CONTROL_TIME_CONST;
+    ctc->control_word &= ~Z80_CTC_CONTROL_RESET;
 
     ctc->time_constant = b;
     ctc->counter = ctc->time_constant;
@@ -121,6 +123,10 @@ cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
       (b & 0x02) ? "reset " : "",
       (b & 0x01) ? "control " : "vector "
     );
+    if( b & Z80_CTC_CONTROL_RESET ) {
+      ctc->zc = 0;
+      ctc->intr = 0;
+    }
   } else {
     dbg("channel %d vector 0x%02x", channel, b);
     for( channel = 0; channel < 4; channel++ )
@@ -131,6 +137,11 @@ cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
 static void
 ctc_trigger( struct cobra_ctc *ctc, int trigger )
 {
+  if( ctc->control_word & Z80_CTC_CONTROL_RESET ) {
+    dbg("XXXX channel %p in reset", ctc);
+    ctc->trigger_pin = trigger;
+    return;
+  }
   if( trigger && !ctc->trigger_pin ) {
     ctc->counter--;
     dbg( "%p new counter: %d", ctc, ctc->counter );
@@ -138,39 +149,42 @@ ctc_trigger( struct cobra_ctc *ctc, int trigger )
     if( ctc->zc ) {
       ctc->counter = ctc->time_constant;
       dbg( "%p ZC: new counter: %d", ctc, ctc->counter );
-      if( ctc->control_word & Z80_CTC_CONTROL_INTR_EN )
-        ctc->intr = 1;
-/*
       if( ctc->control_word & Z80_CTC_CONTROL_INTR_EN ) {
-        // TODO: event?  doesn't seem to fire.
-        libspectrum_byte
-        dbg( "%p interrupt! vector %d", ctc, ctc->vector );
-        z80_interrupt_vector( ctc->vector );
+        ctc->intr = 1;
       }
-*/
+      event_add( tstates + 1, ctc_int_event );
     }
   }
   ctc->trigger_pin = trigger;
 }
 
 static void
-ctc_check_int( struct cobra_ctc *ctc )
+ctc_int_fn( libspectrum_dword tstates, int type, void *user_data )
 {
   int chan;
-  for( chan = 0; chan < 4; chan++, ctc++ ) {
+
+//  upd_fdc_tc( cobra_fdc, cobra_ctc[ 2 ].zc );
+
+  for( chan = 0; chan < 4; chan++ ) {
+    struct cobra_ctc *ctc = &cobra_ctc[ chan ];
     if( ctc->intr ) {
         libspectrum_byte vector = (ctc->vector & 0xf8) | (chan << 1);
         dbg( "%p interrupt! vector register 0x%02x, vector 0x%02x", ctc, ctc->vector, vector );
-        ctc->intr = 0;
-        z80_interrupt_vector( vector );
-        //break;
-      }
+        if( !z80_interrupt_vector( vector ) ) {
+          dbg("defer");
+          event_add( tstates + 10, ctc_int_event );
+        } else {
+          dbg("accepted");
+          ctc->intr = 0;
+        }
+    }
   }
 }
 
 static void
 cobra_fdc_set_intrq( upd_fdc *f )
 {
+  int old_zc = cobra_ctc[2].zc;
   ctc_trigger( &cobra_ctc[0], 1 );
   if( cobra_ctc[0].zc ) {
     ctc_trigger( &cobra_ctc[1], 1 );
@@ -180,9 +194,8 @@ cobra_fdc_set_intrq( upd_fdc *f )
     ctc_trigger( &cobra_ctc[2], 1 );
     ctc_trigger( &cobra_ctc[2], 0 );
   }
-  if( f )
-    upd_fdc_tc( f, cobra_ctc[2].zc );
-  ctc_check_int( cobra_ctc );
+  if( f && !old_zc && cobra_ctc[2].zc )
+    upd_fdc_tc( f, 1 );
 }
 
 static void
@@ -213,6 +226,12 @@ cobra_fdc_reset( int hard )
     fdd_init( drive->fdd, dt->enabled ? FDD_SHUGART : FDD_TYPE_NONE, dt, 1 );
     fdd_motoron( drive->fdd, 1 );
     ui_media_drive_update_menus( drive, UI_MEDIA_DRIVE_UPDATE_ALL );
+  }
+
+  for(i = 0; i < 4; i++ ) {
+    struct cobra_ctc *ctc = &cobra_ctc[ i ];
+    memset(ctc, 0, sizeof(*ctc));
+    ctc->control_word = Z80_CTC_CONTROL_RESET;
   }
 
   cobra_fdc_available = 1;
@@ -300,6 +319,8 @@ void
 cobra_fdc_init( void )
 {
   int i;
+
+  ctc_int_event = event_register( ctc_int_fn, "CoBra CTC interrupt" );
 
   cobra_fdc = upd_fdc_alloc_fdc( UPD765A, UPD_CLOCK_8MHZ );
   cobra_fdc->drive[0] = &cobra_drives[0];
