@@ -139,11 +139,13 @@ cobra_memory_map( void )
   /* PO and LO6 signals on the circuit board */
   int po = machine_current->ram.last_byte2 & 0x80;
   int lo6 = machine_current->ram.last_byte2 & 0x40;
+  int o6 = machine_current->ram.last_byte & 0x40;
 
-  dbg( "last_byte2=0x%02x", machine_current->ram.last_byte2 );
+  dbg( "last_byte=0x%02x last_byte2=0x%02x", machine_current->ram.last_byte, machine_current->ram.last_byte2 );
   machine_current->ram.special = po || lo6;
 
   if( machine_current->ram.special ) {
+#if 0 /* 64k */
     memory_ram_set_16k_writable( 10, 1 );
     if( po ) {
       memory_map_16k( 0x0000, memory_map_rom, 0 );
@@ -156,6 +158,32 @@ cobra_memory_map( void )
     memory_map_16k_subpage( 0xa000, memory_map_ram, 5, 1 );
     memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
     memory_map_16k_subpage( 0xe000, memory_map_ram, 10, 1 );
+#else /* 80k */
+    memory_ram_set_16k_writable( 10, 1 );
+    if( lo6 ) {
+      memory_map_16k( 0x0000, memory_map_ram, 10 );
+      memory_map_16k( 0x4000, memory_map_ram, 5 );  // TODO: o6
+      memory_map_16k( 0x8000, memory_map_ram, 2 );
+      memory_map_16k( 0xc000, memory_map_ram, 0 );
+    } else {
+      if( po ) {
+        memory_map_16k( 0x0000, memory_map_rom, 0 );
+        memory_map_16k( 0x4000, memory_map_rom, 1 );
+      } else {
+        memory_map_16k( 0x0000, memory_map_ram, 2 );
+        memory_map_16k( 0x4000, memory_map_ram, 0 );
+      }
+      memory_map_16k_subpage( 0x8000, memory_map_ram, 10, 0 );
+      memory_map_16k_subpage( 0xa000, memory_map_ram, 10, 1 );
+      if( o6 ) { /* TODO! */
+        memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
+        memory_map_16k_subpage( 0xe000, memory_map_ram, 5, 1 );
+      } else {
+        memory_map_16k_subpage( 0xc000, memory_map_ram, 5, 0 );
+        memory_map_16k_subpage( 0xe000, memory_map_ram, 5, 1 );
+      }
+    }
+#endif
   } else {
     memory_ram_set_16k_writable( 10, 0 );
     memory_map_16k( 0x0000, memory_map_ram, 10 );
@@ -175,6 +203,7 @@ libspectrum_byte cobra_ula_read( libspectrum_word port, int *attached )
 
 void cobra_ula_write( libspectrum_word port, libspectrum_byte b )
 {
+  libspectrum_byte change;
   dbg( "port 0x%02x <- 0x%02x", port & 0xff, b );
   if(( port & 0xff ) == 0xfe )
     dbg( "%s%s%s%s%s",
@@ -184,7 +213,10 @@ void cobra_ula_write( libspectrum_word port, libspectrum_byte b )
       (b & (1 << 6)) ? "O6 " : "   ",
       (b & (1 << 7)) ? "SO " : "   "
     );
+  change = (machine_current->ram.last_byte ^ b) & (0x40 | 0x20);
   machine_current->ram.last_byte = b;
+  if( change )
+    machine_current->memory_map();
 }
 
 void rfsh_check_page( libspectrum_byte R7 )
