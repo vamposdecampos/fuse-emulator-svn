@@ -1031,7 +1031,7 @@ upd_fdc_event( libspectrum_dword last_tstates GCC_UNUSED, int event,
     } else if( f->cmd->id == UPD_CMD_WRITE_DATA ) {
       start_write_data( f );
     }
-  } else if( f->main_status & 0x03 ) {		/* seek/recalibrate active */
+  } else if( f->main_status & 0x0f ) {		/* seek/recalibrate active */
     seek_step( f, 0 );
   } else if( f->cmd->id == UPD_CMD_READ_DATA || f->cmd->id == UPD_CMD_SCAN ) {
     start_read_data( f );
