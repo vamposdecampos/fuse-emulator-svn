@@ -547,11 +547,6 @@ seek_step( upd_fdc *f, int start )
 
     /* Mark seek mode for fdd. It will be cleared by Sense Interrupt command */
     upd_fdc_set_main_status(f, 1 << i, 1);
-
-    event_add_with_data( tstates + f->stp_rate * 
-                         machine_current->timings.processor_speed / 1000,
-                         fdc_event, f );
-    return; // XXX defer recalibrate for a while
   } else {
 
     /* Get drive in seek state that has completed the positioning */
