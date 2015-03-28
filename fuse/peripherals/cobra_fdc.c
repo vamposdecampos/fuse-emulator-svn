@@ -52,6 +52,7 @@ struct cobra_ctc {
   libspectrum_byte counter;
   unsigned trigger_pin:1;
   unsigned zc:1;
+  unsigned intr:1;
 };
 
 static upd_fdc *cobra_fdc;
@@ -105,7 +106,8 @@ cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
 
     ctc->time_constant = b;
     ctc->counter = ctc->time_constant;
-    ctc->zc = ctc->counter == 0;
+    ctc->zc = 0; //ctc->counter == 0;
+    ctc->intr = 0;
     dbg("channel %d time constant 0x%x / %d", channel, b, b);
   } else if ( b & Z80_CTC_CONTROL_CONTROL ) {
     ctc->control_word = b;
@@ -120,8 +122,9 @@ cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
       (b & 0x01) ? "control " : "vector "
     );
   } else {
-    ctc->vector = b;
     dbg("channel %d vector 0x%02x", channel, b);
+    for( channel = 0; channel < 4; channel++ )
+      cobra_ctc[ channel ].vector = b;
   }
 }
 
@@ -135,14 +138,34 @@ ctc_trigger( struct cobra_ctc *ctc, int trigger )
     if( ctc->zc ) {
       ctc->counter = ctc->time_constant;
       dbg( "%p ZC: new counter: %d", ctc, ctc->counter );
+      if( ctc->control_word & Z80_CTC_CONTROL_INTR_EN )
+        ctc->intr = 1;
+/*
       if( ctc->control_word & Z80_CTC_CONTROL_INTR_EN ) {
         // TODO: event?  doesn't seem to fire.
+        libspectrum_byte
         dbg( "%p interrupt! vector %d", ctc, ctc->vector );
         z80_interrupt_vector( ctc->vector );
       }
+*/
     }
   }
   ctc->trigger_pin = trigger;
+}
+
+static void
+ctc_check_int( struct cobra_ctc *ctc )
+{
+  int chan;
+  for( chan = 0; chan < 4; chan++, ctc++ ) {
+    if( ctc->intr ) {
+        libspectrum_byte vector = (ctc->vector & 0xf8) | (chan << 1);
+        dbg( "%p interrupt! vector register 0x%02x, vector 0x%02x", ctc, ctc->vector, vector );
+        ctc->intr = 0;
+        z80_interrupt_vector( vector );
+        //break;
+      }
+  }
 }
 
 static void
@@ -159,6 +182,7 @@ cobra_fdc_set_intrq( upd_fdc *f )
   }
   if( f )
     upd_fdc_tc( f, cobra_ctc[2].zc );
+  ctc_check_int( cobra_ctc );
 }
 
 static void
