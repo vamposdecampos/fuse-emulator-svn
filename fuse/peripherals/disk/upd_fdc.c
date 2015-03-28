@@ -24,6 +24,7 @@
 #include <config.h>
 
 #include <libspectrum.h>
+#include <unistd.h>
 
 #include "crc.h"
 #include "event.h"
@@ -1560,8 +1561,10 @@ static void trace_open(void)
 	if (trace_fp)
 		return;
 	trace_fp = fopen("/tmp/upd_fdc_trace.log", "a");
-	if (trace_fp)
-		setlinebuf(trace_fp);
+	if (!trace_fp)
+		return;
+	ftruncate(fileno(trace_fp), 0);
+	setlinebuf(trace_fp);
 }
 
 static void trace(char what, libspectrum_byte val, int newline)
