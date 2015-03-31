@@ -810,7 +810,7 @@ fprintf(stderr, "%s:%d mt=%d tc=%d %d/%d/%d/%d eot=%d\n", __func__, __LINE__,
  f->data_register[3],
  f->data_register[4],
  f->data_register[5]);
-    if( f->mt && f->data_register[3] >= f->data_register[5] ) {
+    if( f->mt && !f->tc && f->data_register[3] >= f->data_register[5] ) {
       if( f->data_register[2] )
         f->data_register[1]++;		/* next track */
       f->data_register[3] = 1;		/* first sector */
