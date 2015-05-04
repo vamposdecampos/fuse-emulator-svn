@@ -111,6 +111,8 @@ cobra_ctc_write( libspectrum_word port, libspectrum_byte b )
     ctc->zc = 0; //ctc->counter == 0;
     ctc->intr = 0;
     dbg("channel %d time constant 0x%x / %d", channel, b, b);
+    if( channel == 3 && ( ctc->control_word & Z80_CTC_CONTROL_INTR_EN ))
+      machine_current->timings.interrupt_length = libspectrum_timings_interrupt_length( machine_current->machine );
   } else if ( b & Z80_CTC_CONTROL_CONTROL ) {
     ctc->control_word = b;
     dbg( "channel %d %s%s%s%s%s%s%s%s", channel,
@@ -206,6 +208,20 @@ cobra_fdc_reset_intrq( upd_fdc *f )
 }
 
 
+static int
+cobra_fdc_frame_interrupt( void )
+{
+  /* only allow interrupts in Basic mode */
+  if( machine_current->ram.special ) {
+    ctc_trigger( &cobra_ctc[3], 1 );
+    ctc_trigger( &cobra_ctc[3], 0 );
+    fprintf(stderr, "INT!\n");
+    return 1;
+  }
+  return machine_current->ram.special ? 1 : 0;
+}
+
+
 void
 cobra_fdc_reset( int hard )
 {
@@ -235,6 +251,7 @@ cobra_fdc_reset( int hard )
     ctc->control_word = Z80_CTC_CONTROL_RESET;
   }
 
+  machine_current->frame_interrupt = cobra_fdc_frame_interrupt;
   cobra_fdc_available = 1;
   dbg( "active" );
 }
