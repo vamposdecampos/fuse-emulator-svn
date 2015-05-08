@@ -270,6 +270,12 @@ display_dirty_pentagon_16_col( libspectrum_word offset )
 void
 display_dirty_sinclair( libspectrum_word offset )
 {
+  if( offset >= 0x3b00 ) return;
+  if( offset >= 0x2000 ) {
+      offset -= 0x2000;
+      offset ^= 0x1c;
+  }
+
   if( offset >= 0x1b00 ) return;
   if( offset <  0x1800 ) {		/* 0x1800 = first attributes byte */
     display_dirty8( offset );
@@ -520,7 +526,24 @@ display_write_if_dirty_sinclair( int x, int y )
 
     /* And now mark it dirty */
     display_is_dirty[ beam_y ] |= ( (libspectrum_qword)1 << beam_x );
+
   }
+
+    if (x < 4) {
+        libspectrum_byte ink, paper;
+        display_parse_attr( data2, &ink, &paper );
+        offset = display_get_addr( 28 + x, y );
+        data = screen[ offset + 0x2000 ];
+        uidisplay_plot8( beam_x - 4, beam_y, data, ink, paper );
+        display_is_dirty[ beam_y ] |= ( (libspectrum_qword)1 << (beam_x - 4) );
+    } else if (x >= 28) {
+        libspectrum_byte ink, paper;
+        display_parse_attr( data2, &ink, &paper );
+        offset = display_get_addr( x - 28, y );
+        data = screen[ offset + 0x2000 ];
+        uidisplay_plot8( beam_x + 4, beam_y, data, ink, paper );
+        display_is_dirty[ beam_y ] |= ( (libspectrum_qword)1 << (beam_x + 4) );
+    }
 }
 
 /* Plot any dirty data from ( x, y ) to ( end, y ) of the critical

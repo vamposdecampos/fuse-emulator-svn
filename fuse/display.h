@@ -41,7 +41,7 @@
 #define DISPLAY_HEIGHT        ( DISPLAY_HEIGHT_ROWS * 8 )
 
 /* The width and height of the (emulated) border */
-#define DISPLAY_BORDER_WIDTH_COLS  4
+#define DISPLAY_BORDER_WIDTH_COLS  6
 #define DISPLAY_BORDER_HEIGHT_COLS 3
 
 /* The width and height of the (emulated) border */

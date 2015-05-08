@@ -424,7 +424,7 @@ memory_display_dirty_sinclair( libspectrum_word address, libspectrum_byte b ) \
      the destination), redraw that bit */
   if( mapping->source == memory_source_ram && 
       mapping->page_num == memory_current_screen &&
-      ( offset2 & memory_screen_mask ) < 0x1b00 &&
+      ( offset2 & memory_screen_mask ) < 0x3b00 && //XXX
       memory[ offset ] != b )
     display_dirty( offset2 );
 }
