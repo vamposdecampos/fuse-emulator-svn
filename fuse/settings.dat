@@ -62,6 +62,9 @@ interface1, boolean, 0
 mdr_len, numeric, 180
 mdr_random_len, boolean, 1
 interface2, boolean, 1
+multiface, boolean, 0
+multiface_type, string, NULL
+multiface_stealth, boolean, 0
 snapsasz80, null, 0
 opus, boolean, 0
 pal_tv2x, boolean, 0
@@ -233,6 +236,9 @@ rom_scorpion_3, string, "256s-3.rom",
 rom_spec_se_0, string, "se-0.rom",
 rom_spec_se_1, string, "se-1.rom",
 rom_interface_i, string, "if1-2.rom",
+rom_multiface1, string, "mf1.rom",
+rom_multiface128, string, "mf128.rom",
+rom_multiface3, string, "mfplus3.rom",
 rom_beta128, string, "trdos.rom",
 rom_plusd, string, "plusd.rom",
 rom_disciple, string, "disciple.rom",

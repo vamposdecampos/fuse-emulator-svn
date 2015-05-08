@@ -106,12 +106,13 @@ Options/Select ROMs/Machine ROMs/Spectrum _SE..., Item,, menu_options_selectroms
 
 Options/Select ROMs/_Peripheral ROMs, Branch
 Options/Select ROMs/Peripheral ROMs/_Interface 1..., Item,, menu_options_selectroms_select,, 16
-Options/Select ROMs/Peripheral ROMs/_Beta 128..., Item,, menu_options_selectroms_select,, 17
-Options/Select ROMs/Peripheral ROMs/+_D..., Item,, menu_options_selectroms_select,, 18
-Options/Select ROMs/Peripheral ROMs/DISCiP_LE..., Item,, menu_options_selectroms_select,, 19
-Options/Select ROMs/Peripheral ROMs/_Opus Discovery..., Item,, menu_options_selectroms_select,, 20
-Options/Select ROMs/Peripheral ROMs/Specc_yBoot..., Item,, menu_options_selectroms_select,, 21
-Options/Select ROMs/Peripheral ROMs/_uSource..., Item,, menu_options_selectroms_select,, 22
+Options/Select ROMs/Peripheral ROMs/_Multiface..., Item,, menu_options_selectroms_select,, 17
+Options/Select ROMs/Peripheral ROMs/_Beta 128..., Item,, menu_options_selectroms_select,, 18
+Options/Select ROMs/Peripheral ROMs/+_D..., Item,, menu_options_selectroms_select,, 19
+Options/Select ROMs/Peripheral ROMs/DISCiP_LE..., Item,, menu_options_selectroms_select,, 20
+Options/Select ROMs/Peripheral ROMs/_Opus Discovery..., Item,, menu_options_selectroms_select,, 21
+Options/Select ROMs/Peripheral ROMs/Specc_yBoot..., Item,, menu_options_selectroms_select,, 22
+Options/Select ROMs/Peripheral ROMs/_uSource..., Item,, menu_options_selectroms_select,, 23
 
 Options/_Filter..., Item,,, menu_filter_detail
 
@@ -143,6 +144,7 @@ Machine/Profiler/_Start, Item
 Machine/Profiler/_Stop, Item
 
 Machine/_NMI, Item
+Machine/Multiface Red _Button, Item
 
 M_edia, Branch
 

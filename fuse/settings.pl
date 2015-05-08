@@ -762,12 +762,15 @@ settings_get_rom_setting( settings_info *settings, size_t which )
   case 38: return &( settings->rom_spec_se_0 );
   case 39: return &( settings->rom_spec_se_1 );
   case 40: return &( settings->rom_interface_i );
-  case 41: return &( settings->rom_beta128 );
-  case 42: return &( settings->rom_plusd );
-  case 43: return &( settings->rom_disciple );
-  case 44: return &( settings->rom_opus );
-  case 45: return &( settings->rom_speccyboot );
-  case 46: return &( settings->rom_usource );
+  case 41: return &( settings->rom_multiface1 );
+  case 42: return &( settings->rom_multiface128 );
+  case 43: return &( settings->rom_multiface3 );
+  case 44: return &( settings->rom_beta128 );
+  case 45: return &( settings->rom_plusd );
+  case 46: return &( settings->rom_disciple );
+  case 47: return &( settings->rom_opus );
+  case 48: return &( settings->rom_speccyboot );
+  case 49: return &( settings->rom_usource );
   default: return NULL;
   }
 }

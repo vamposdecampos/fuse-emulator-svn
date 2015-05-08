@@ -76,6 +76,7 @@
 #include "peripherals/if2.h"
 #include "peripherals/kempmouse.h"
 #include "peripherals/melodik.h"
+#include "peripherals/multiface.h"
 #include "peripherals/printer.h"
 #include "peripherals/scld.h"
 #include "peripherals/speccyboot.h"
@@ -291,6 +292,7 @@ static int fuse_init(int argc, char **argv)
   if( zxcf_init() ) return 1;
   if1_init();
   if2_init();
+  if( multiface_init() ) return 1;
   if( divide_init() ) return 1;
   scld_init();
   ula_init();

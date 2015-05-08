@@ -232,6 +232,8 @@ static const struct menu_item_entries menu_item_lookup[] = {
   { UI_MENU_ITEM_MACHINE_PROFILER, "/Machine/Profiler/Stop",
     "/Machine/Profiler/Start", 1 },
   
+  { UI_MENU_ITEM_MACHINE_MULTIFACE, "/Machine/Multiface Red Button" },
+
   { UI_MENU_ITEM_MEDIA_CARTRIDGE, "/Media/Cartridge" },
 
   { UI_MENU_ITEM_MEDIA_CARTRIDGE_DOCK, "/Media/Cartridge/Timex Dock" },

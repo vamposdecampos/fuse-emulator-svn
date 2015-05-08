@@ -44,6 +44,7 @@ libperipherals_a_SOURCES = \
   joystick.c \
   kempmouse.c \
   melodik.c \
+  multiface.c \
   printer.c \
   scld.c \
   speccyboot.c \
@@ -61,6 +62,7 @@ noinst_HEADERS = \
   joystick.h \
   kempmouse.h \
   melodik.h \
+  multiface.h \
   printer.h \
   scld.h \
   speccyboot.h \

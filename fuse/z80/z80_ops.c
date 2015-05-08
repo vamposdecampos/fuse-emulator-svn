@@ -38,6 +38,7 @@
 #include "peripherals/disk/plusd.h"
 #include "peripherals/ide/divide.h"
 #include "peripherals/if1.h"
+#include "peripherals/multiface.h"
 #include "peripherals/spectranet.h"
 #include "peripherals/ula.h"
 #include "peripherals/usource.h"
@@ -198,6 +199,14 @@ z80_do_opcodes( void )
 
     if( PC == 0x2bae ) {
       usource_toggle();
+    }
+
+    END_CHECK
+
+    CHECK( multiface, multiface_activated )
+
+    if( PC == 0x0066 ) {
+      multiface_setic8();
     }
 
     END_CHECK

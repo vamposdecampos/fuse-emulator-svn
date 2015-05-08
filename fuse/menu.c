@@ -44,6 +44,7 @@
 #include "peripherals/if1.h"
 #include "peripherals/if2.h"
 #include "peripherals/joystick.h"
+#include "peripherals/multiface.h"
 #include "profile.h"
 #include "psg.h"
 #include "rzx.h"
@@ -246,12 +247,13 @@ MENU_CALLBACK_WITH_ACTION( menu_options_selectroms_select )
   case 15: menu_select_roms( LIBSPECTRUM_MACHINE_SE,       38, 2 ); return;
 
   case 16: menu_select_roms_with_title( "Interface 1",     40, 1 ); return;
-  case 17: menu_select_roms_with_title( "Beta 128",        41, 1 ); return;
-  case 18: menu_select_roms_with_title( "+D",              42, 1 ); return;
-  case 19: menu_select_roms_with_title( "DISCiPLE",        43, 1 ); return;
-  case 20: menu_select_roms_with_title( "Opus Discovery",  44, 1 ); return;
-  case 21: menu_select_roms_with_title( "SpeccyBoot",      45, 1 ); return;
-  case 22: menu_select_roms_with_title( "uSource",         46, 1 ); return;
+  case 17: menu_select_roms_with_title( "Multiface One/128/+3", 41, 3 ); return;
+  case 18: menu_select_roms_with_title( "Beta 128",        44, 1 ); return;
+  case 19: menu_select_roms_with_title( "+D",              45, 1 ); return;
+  case 20: menu_select_roms_with_title( "DISCiPLE",        46, 1 ); return;
+  case 21: menu_select_roms_with_title( "Opus Discovery",  47, 1 ); return;
+  case 22: menu_select_roms_with_title( "SpeccyBoot",      48, 1 ); return;
+  case 23: menu_select_roms_with_title( "uSource",         49, 1 ); return;
 
   }
 
@@ -314,6 +316,13 @@ MENU_CALLBACK( menu_machine_nmi )
   ui_widget_finish();
   event_add( 0, z80_nmi_event );
 }
+
+MENU_CALLBACK( menu_machine_multifaceredbutton )
+{
+  ui_widget_finish();
+  multiface_red_button();
+}
+
 
 MENU_CALLBACK( menu_media_tape_open )
 {

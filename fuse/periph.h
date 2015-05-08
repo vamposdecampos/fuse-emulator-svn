@@ -47,6 +47,7 @@ typedef enum periph_type {
   PERIPH_TYPE_FULLER,         /* Fuller box */
   PERIPH_TYPE_INTERFACE1,     /* Interface 1 */
   PERIPH_TYPE_INTERFACE2,     /* Interface 2 */
+  PERIPH_TYPE_MULTIFACE,      /* Multiface 1/128/+3 */
 
   /* A Kempston joystick which requires b5, b6 and b7 reset to be read */
   PERIPH_TYPE_KEMPSTON,
